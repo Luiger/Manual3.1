@@ -1,0 +1,14 @@
+0000000000000000000000000000000000000000 759826f627d6382879d5c915f133b962b4f9738b Luiger <luiger852@gmail.com> 1752779155 -0400	commit (initial): Initial commit
+759826f627d6382879d5c915f133b962b4f9738b 0468432087f713953547c430e6cbb90c0441fbbd Luiger <luiger852@gmail.com> 1752785406 -0400	commit: first commit
+0468432087f713953547c430e6cbb90c0441fbbd 0000000000000000000000000000000000000000 Luiger <luiger852@gmail.com> 1752785414 -0400	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 0468432087f713953547c430e6cbb90c0441fbbd Luiger <luiger852@gmail.com> 1752785414 -0400	Branch: renamed refs/heads/master to refs/heads/main
+0468432087f713953547c430e6cbb90c0441fbbd 0353356eaa05097d668435a492ef2c65ae7e7519 Luiger <luiger852@gmail.com> 1752947979 -0400	commit: funcionalidad de formulario y login, conectando al backend
+0353356eaa05097d668435a492ef2c65ae7e7519 46e30d2fee33773fe931ad74abec671b04006f55 Luiger <luiger852@gmail.com> 1753190706 -0400	commit: funcionalidades en el home y nuevos Screen
+46e30d2fee33773fe931ad74abec671b04006f55 47a1ec7905fbddf0eef4e004e248642e8666b440 Luiger <luiger852@gmail.com> 1753209997 -0400	commit: reestructurando estilos y añadiendo funcionalidad Manual Express
+47a1ec7905fbddf0eef4e004e248642e8666b440 8131d945247fa73ac4f1b635b08b966051291fd3 Luiger <luiger852@gmail.com> 1753217350 -0400	commit: validación en el Login, se quedaba cargando infinito
+8131d945247fa73ac4f1b635b08b966051291fd3 bf99640ac9c561adcc487ad910b55ee3b5bcdabc Luiger <luiger852@gmail.com> 1753218497 -0400	commit: mejorando layout del registro
+bf99640ac9c561adcc487ad910b55ee3b5bcdabc 4cdcb23faf15ecd6677333c450679b7dcf0e0e79 Luiger <luiger852@gmail.com> 1753462331 -0400	commit: Funcionalidad de Usuarios y Admin con Roles
+4cdcb23faf15ecd6677333c450679b7dcf0e0e79 381c3d027ce77ec3a23517571c0386e7f50da8ae Luiger <luiger852@gmail.com> 1753476414 -0400	commit: Mejorando Asistente IA
+381c3d027ce77ec3a23517571c0386e7f50da8ae e72b9c6da875094a38ced8c12d533e08cc95d2e2 Luiger <luiger852@gmail.com> 1753552300 -0400	commit: Arreglando fixs
+e72b9c6da875094a38ced8c12d533e08cc95d2e2 a4859e2cea3d70f2f094d9fd4401c0e293f63c84 Luiger <luiger852@gmail.com> 1753711878 -0400	commit: Mejora en Interfaz de Registro Perfil
+a4859e2cea3d70f2f094d9fd4401c0e293f63c84 3d17ac4df8fbbe25919ec4e1c5f7cc1fb526d3ea Luiger <luiger852@gmail.com> 1753722460 -0400	commit: Arreglo error de padding en Interfaz de Manuales y Login
