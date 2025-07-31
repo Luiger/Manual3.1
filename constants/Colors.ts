@@ -18,8 +18,13 @@ const Colors = {
   //error: '#e94969',
   error: '#e73746',
   border: '#D1D1D6',
+
+  // Blanco para el fondo de los inputs y tarjetas
+  surface: '#FFFFFF', 
   
-  surface: '#FFFFFF', // Blanco para el fondo de los inputs y tarjetas
+  // Color de Ícono de Whatsapp
+  iconWhatsapp: '#25D366',
+  whatsapp: '#075E54', 
 };
 
 export default Colors;

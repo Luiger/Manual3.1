@@ -6,12 +6,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useNavigation } from 'expo-router';
 import * as Yup from 'yup';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { FormService } from '../services/form.service';
 import Colors from '../constants/Colors';
 import * as Linking from 'expo-linking';
 import CustomAlertModal from '../components/CustomAlertModal';
+
+const CustomHeader = ({ onBackPress }) => (
+  <View style={styles.customHeaderContainer}>
+    <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
+      <Ionicons name="arrow-back" size={28} color={Colors.text} />
+    </TouchableOpacity>
+  </View>
+);
 
 const validationSchema = Yup.object().shape({
   nombreInstitucion: Yup.string().required('Campo requerido'),
@@ -25,7 +33,6 @@ const validationSchema = Yup.object().shape({
 const ManualProFormScreen = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const navigation = useNavigation();
 
   const [formData, setFormData] = useState({
     nombreInstitucion: '',
@@ -41,14 +48,6 @@ const ManualProFormScreen = () => {
   const [error, setError] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState<boolean | null>(null);
   const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', confirmText: '', cancelText: '', onConfirm: () => {}, onCancel: () => {} });
-
-  // Este useEffect ahora oculta el header si el modal está visible O si está cargando.
-  useEffect(() => {
-    const isLoading = hasSubmitted === null;
-    navigation.setOptions({
-      headerShown: !modalConfig.visible && !isLoading,
-    });
-  }, [modalConfig.visible, hasSubmitted, navigation]);
 
   useEffect(() => {
     const handleUpgrade = () => {
@@ -145,12 +144,17 @@ const ManualProFormScreen = () => {
     }
 
     if (user?.Rol === 'Usuario Gratis' || hasSubmitted === true) {
-      return null; // Render nothing, the modal will be the only thing visible
+      return null; // No mostrar contenido si es usuario gratis o ya ha enviado el formulario
     }
 
     return (
+      
+
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} >
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" >
+
+          {shouldShowContent && <CustomHeader onBackPress={() => router.back()} />}
+
           <View style={styles.header}>
             <Text style={styles.title}>Elabora tu manual PRO</Text>
             <Text style={styles.subtitle}>Completa los siguientes campos para generar la base de tu manual. Una vez elaborado, lo recibirás en tu correo en formato de Google Docs, listo para que lo personalices.</Text>
@@ -194,15 +198,19 @@ const ManualProFormScreen = () => {
     );
   };
 
+  // Variable para saber cuándo mostrar el contenido principal (header y formulario)
+  const shouldShowContent = !modalConfig.visible && hasSubmitted === false;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right',]}>
+
+      {/* Renderizado condicional del contenido principal */}
       {renderContent()}
 
-      {/* ✅ INICIO DEL CAMBIO: Renderizado condicional del fondo oscuro */}
+      {/* Renderizado condicional del fondo oscuro */}
       {modalConfig.visible && (
         <View style={styles.overlay} />
       )}
-      {/* FIN DEL CAMBIO */}
 
       <CustomAlertModal
         visible={modalConfig.visible}
@@ -224,7 +232,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     zIndex: 1, // Asegura que esté por encima del contenido pero por debajo del modal
   },
-  container: { padding: 20, paddingBottom: 40 },
+  customHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 1,
+    paddingTop: 15,
+    height: 60,
+  },
+  backButton: {
+    padding: 0,
+  },
+  container: { 
+    padding: 20,
+    paddingBottom: 40 },
   header: { marginBottom: 32, alignItems: 'center' },
   title: { fontFamily: 'Roboto_700Bold', fontSize: 22, color: Colors.text, textAlign: 'center' },
   subtitle: { fontFamily: 'Roboto_400Regular', fontSize: 15, color: Colors.textSecondary, textAlign: 'center', marginTop: 12, lineHeight: 22 },

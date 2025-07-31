@@ -50,7 +50,8 @@ const cardData = [
     icon: { family: FontAwesome5, name: 'whatsapp' },
     buttonText: 'Contactar',
     buttonVariant: 'transparent',
-    action: () => console.log('Abriendo Soporte...'),
+    //action: () => console.log('Abriendo Soporte...'),
+    action: (router) => router.push('/support'),
   },
   {
     id: '5',
