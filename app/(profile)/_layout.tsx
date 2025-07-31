@@ -24,6 +24,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="menu" options={{ headerShown: false }} />
       <Stack.Screen name="edit" options={{ title: 'Editar Perfil' }} />
       <Stack.Screen name="change-password" options={{ headerShown: false }} />
+      <Stack.Screen name="about" options={{ headerShown: false }} />
     </Stack>
   );
 }

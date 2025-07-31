@@ -112,6 +112,19 @@ const RegisterProfileScreen = () => {
           </View>
         
           <View style={styles.footer}>
+
+            <View style={styles.legalContainer}>
+              <Text style={styles.legalText}>Al crear una cuenta, aceptas los </Text>
+              <TouchableOpacity onPress={() => router.push('/terms')}>
+                <Text style={styles.linkText}>Términos y Condiciones</Text>
+              </TouchableOpacity>
+              <Text style={styles.legalText}> y la </Text>
+              <TouchableOpacity onPress={() => router.push('/privacy')}>
+                <Text style={styles.linkText}>Política de Privacidad</Text>
+              </TouchableOpacity>
+              <Text style={styles.legalText}>.</Text>
+            </View>            
+
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             <TouchableOpacity style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]} onPress={handleCompleteProfile} disabled={!isFormValid || loading}>
               {loading ? <ActivityIndicator color={Colors.textLight} /> : <Text style={styles.buttonText}>Crear cuenta</Text>}
@@ -139,13 +152,32 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: { marginBottom: 24 },
+  legalContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  legalText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  linkText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 13,
+    color: Colors.link,
+    textDecorationLine: 'underline',
+  },
   title: { fontFamily: 'Roboto_700Bold', fontSize: 24, textAlign: 'center', marginBottom: 8, color: Colors.text },
   subtitle: { fontFamily: 'Roboto_400Regular', fontSize: 16, textAlign: 'center', color: Colors.textSecondary },
   form: { marginTop: 32 },
   inputContainer: { marginBottom: 20 },
   label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.textSecondary, marginBottom: 8 },
   input: { height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Roboto_400Regular' },
-  footer: { marginTop: 20 }, // Margen para separar del último campo
+  footer: { marginTop: 10 }, // Margen para separar del último campo
   errorText: { color: Colors.error, textAlign: 'center', marginBottom: 10, fontFamily: 'Roboto_400Regular' },
   button: { width: '100%', height: 56, backgroundColor: Colors.primary, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   buttonDisabled: { backgroundColor: '#cccccc' },

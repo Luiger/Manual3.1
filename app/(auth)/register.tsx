@@ -19,7 +19,7 @@ import * as SecureStore from 'expo-secure-store';
 import { AuthService } from '../../services/auth.service';
 import Colors from '../../constants/Colors';
 
-// ✅ Componente Stepper con estilos actualizados según la guía
+// Componente Stepper con estilos actualizados según la guía
 const Stepper = ({ currentStep }: { currentStep: number }) => (
   <View style={styles.stepperContainer}>
     <View style={styles.step}>
@@ -77,7 +77,7 @@ const RegisterCredentialsScreen = () => {
         await SecureStore.setItemAsync('tempRegToken', result.tempToken);
         router.push('/(auth)/register-profile');
 
-        // ✅ MEJORA: Limpiamos el estado después de navegar.
+        // Limpiamos el estado después de navegar.
         setFormData({ email: '', password: '', confirmPassword: '' });
         
       } else {
@@ -131,6 +131,19 @@ const RegisterCredentialsScreen = () => {
           </View>
 
           <View style={styles.footer}>
+
+            <View style={styles.legalContainer}>
+              <Text style={styles.legalText}>Al crear una cuenta, aceptas los </Text>
+              <TouchableOpacity onPress={() => router.push('/terms')}>
+                <Text style={styles.linkText}>Términos y Condiciones</Text>
+              </TouchableOpacity>
+              <Text style={styles.legalText}> y la </Text>
+              <TouchableOpacity onPress={() => router.push('/privacy')}>
+                <Text style={styles.linkText}>Política de Privacidad</Text>
+              </TouchableOpacity>
+              <Text style={styles.legalText}>.</Text>
+            </View>
+
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             <TouchableOpacity style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]} onPress={handleNextStep} disabled={!isFormValid || loading}>
               {loading ? <ActivityIndicator color={Colors.textLight} /> : <Text style={styles.buttonText}>Siguiente</Text>}
@@ -146,7 +159,7 @@ const RegisterCredentialsScreen = () => {
   );
 };
 
-// ✅ Estilos completamente actualizados con la nueva paleta y tipografía
+// Estilos completamente actualizados con la nueva paleta y tipografía
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.background },
   keyboardAvoiding: { flex: 1 },
@@ -199,7 +212,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   passwordInput: { flex: 1, fontSize: 16, fontFamily: 'Roboto_400Regular' },
-  footer: { marginTop: 30 },
+  footer: { marginTop: 10 },
   errorText: { color: Colors.error, textAlign: 'center', marginBottom: 10, fontFamily: 'Roboto_400Regular' },
   button: {
     width: '100%',
@@ -230,7 +243,25 @@ const styles = StyleSheet.create({
     color: Colors.link,
     fontSize: 14,
   },
-  // Estilos del Stepper actualizados
+  legalContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  legalText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  linkText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 13,
+    color: Colors.link,
+    textDecorationLine: 'underline',
+  },
   stepperContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',

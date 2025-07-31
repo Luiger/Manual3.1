@@ -46,6 +46,8 @@ export default function RootLayout() {
             <Stack.Screen name="courses" options={{ title: 'Cursos Virtuales' }} />
             <Stack.Screen name="manual-express-form" options={{ title: 'Manual Express' }} />
             <Stack.Screen name="support" options={{ title: 'Soporte' }} />
+            <Stack.Screen name="terms" options={{ headerShown: false }} />
+            <Stack.Screen name="privacy" options={{ headerShown: false }} />
           </Stack>
         </SafeAreaProvider>
       </GestureHandlerRootView>

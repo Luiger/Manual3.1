@@ -60,7 +60,12 @@ export default function ProfileMenuScreen() {
                             onPress={() => router.push('/(profile)/change-password')} 
                             iconName="key" 
                             text="Cambiar Contraseña"
-                            isLast={true}
+                        />
+                        <MenuItem 
+                            onPress={() => router.push('/(profile)/about')} 
+                            iconName="info" 
+                            text="Acerca de la App"
+                            //isLast={true}
                         />
                     </View>
                 </View>
