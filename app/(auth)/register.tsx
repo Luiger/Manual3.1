@@ -161,15 +161,17 @@ const RegisterCredentialsScreen = () => {
 
 // Estilos completamente actualizados con la nueva paleta y tipografía
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.background },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: Colors.background },
   keyboardAvoiding: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 10,
     paddingBottom: 40,
   },
-  header: { marginBottom: 24 },
+  header: { marginBottom: 10},
   title: {
     fontFamily: 'Roboto_700Bold',
     fontSize: 24,
@@ -212,7 +214,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   passwordInput: { flex: 1, fontSize: 16, fontFamily: 'Roboto_400Regular' },
-  footer: { marginTop: 10 },
+  footer: { marginTop: 5},
   errorText: { color: Colors.error, textAlign: 'center', marginBottom: 10, fontFamily: 'Roboto_400Regular' },
   button: {
     width: '100%',

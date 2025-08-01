@@ -4,7 +4,7 @@ import {
   Platform, KeyboardAvoidingView, ScrollView, TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams  } from 'expo-router';
 import * as Yup from 'yup';
 import * as SecureStore from 'expo-secure-store';
 import { Feather } from '@expo/vector-icons';
@@ -42,8 +42,9 @@ const step3Schema = Yup.object({
 
 const ForgotPasswordScreen = () => {
     const router = useRouter();
+    // Lee los parámetros de la URL
+    const { otp: otpFromUrl, email: emailFromUrl } = useLocalSearchParams<{ otp: string, email: string }>();
     
-    // --- Lógica de estados y handlers (sin cambios funcionales) ---
     const [step, setStep] = useState(1);
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
@@ -54,6 +55,26 @@ const ForgotPasswordScreen = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isStepValid, setIsStepValid] = useState(false);
+
+    //  Añade este useEffect para manejar el enlace profundo
+    useEffect(() => {
+        if (otpFromUrl && emailFromUrl) {
+            // Si la pantalla se abre con parámetros desde el enlace:
+            // - Mueve al usuario al paso 2.
+            // - Rellena el email y el OTP automáticamente.
+            setStep(2);
+            setEmail(emailFromUrl);
+            setOtp(otpFromUrl);
+        }
+    }, [otpFromUrl, emailFromUrl]);
+
+    //  (Opcional) Dispara la verificación automáticamente
+    useEffect(() => {
+        // Si el OTP tiene 6 dígitos y estamos en el paso 2, intenta verificarlo.
+        if (step === 2 && otp.length === 6) {
+            handleVerifyOtp();
+        }
+    }, [otp, step]);
 
     useEffect(() => {
         let schema;

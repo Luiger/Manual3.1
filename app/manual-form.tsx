@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TextInput, ScrollView,
   TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useNavigation } from 'expo-router';
 import * as Yup from 'yup';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -31,6 +31,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const ManualProFormScreen = () => {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -134,6 +135,8 @@ const ManualProFormScreen = () => {
     }
   };
 
+  const shouldShowContent = !modalConfig.visible && hasSubmitted === false;
+
   const renderContent = () => {
     if (hasSubmitted === null && user?.Rol !== 'Usuario Gratis') {
       return (
@@ -147,11 +150,16 @@ const ManualProFormScreen = () => {
       return null; // No mostrar contenido si es usuario gratis o ya ha enviado el formulario
     }
 
-    return (
-      
+    return (            
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} >
-        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" >
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -40} >
+        <ScrollView 
+        contentContainerStyle={styles.container} 
+        showsVerticalScrollIndicator={false} 
+        keyboardShouldPersistTaps="handled" >
 
           {shouldShowContent && <CustomHeader onBackPress={() => router.back()} />}
 
@@ -199,10 +207,10 @@ const ManualProFormScreen = () => {
   };
 
   // Variable para saber cuándo mostrar el contenido principal (header y formulario)
-  const shouldShowContent = !modalConfig.visible && hasSubmitted === false;
+  
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right',]}>
+    <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right', 'top']}>
 
       {/* Renderizado condicional del contenido principal */}
       {renderContent()}
@@ -236,8 +244,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 1,
-    paddingTop: 15,
-    height: 60,
+    paddingTop: 0,
+    height: 30,
   },
   backButton: {
     padding: 0,

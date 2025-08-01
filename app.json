@@ -12,7 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "universitaslegalapp",
+    "scheme": "manualesapp",
     "ios": {
       "supportsTablet": true
     },

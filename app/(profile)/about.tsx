@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: Colors.text,
     marginBottom: 24,
+    textAlign: 'center',
   },
   subtitle: {
     fontFamily: 'Roboto_500Medium',
