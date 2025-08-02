@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import * as SecureStore from 'expo-secure-store';
 import { AuthService } from '../../services/auth.service';
 import Colors from '../../constants/Colors';
+import CustomAlertModal from '../../components/CustomAlertModal';
 
 // --- Componente Stepper y Esquema de Validación (sin cambios) ---
 const Stepper = ({ currentStep }: { currentStep: number }) => (
@@ -30,27 +31,39 @@ const RegisterProfileScreen = () => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
 
   useEffect(() => { validationSchema.isValid(profile).then(setIsFormValid); }, [profile]);
   const handleInputChange = (name: keyof typeof profile, value: string) => { setProfile(prevState => ({ ...prevState, [name]: value })); };
   const handleCompleteProfile = async () => {
     if (!isFormValid || loading) return;
-    setError('');
     setLoading(true);
+    setError('');
     const tempToken = await SecureStore.getItemAsync('tempRegToken');
     if (!tempToken) {
       Alert.alert('Sesión Expirada', 'Por favor, inicia el proceso de registro nuevamente.', [{ text: 'OK', onPress: () => router.replace('/(auth)/register') }]);
       setLoading(false);
       return;
     }
-    try {
-      const result = await AuthService.registerProfile(profile, tempToken);
-      if (result.success) {
-        await SecureStore.deleteItemAsync('tempRegToken');
-        Alert.alert('¡Registro completado!', 'Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión.', [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]);
-      } else { setError(result.error || 'Ocurrió un error al completar el perfil.'); }
-    } catch (e) { setError('Ocurrió un error inesperado al conectar con el servidor.'); } finally { setLoading(false); }
-  };
+    // 1. Llama al backend. Ahora esta función enviará el correo.
+        const result = await AuthService.registerProfile(profile, tempToken);
+        setLoading(false);
+
+        if (result.success) {
+            // 2. Si el backend responde bien, muestra la alerta
+            setModalConfig({
+                visible: true,
+                title: '¡Revisa tu correo!',
+                message: 'Hemos enviado un enlace a tu dirección para que confirmes tu cuenta. Por favor, revisa tu bandeja de entrada y spam.',
+                onConfirm: () => {
+                    setModalConfig({ ...modalConfig, visible: false });
+                    router.replace('/(auth)/login');
+                },
+            });
+        } else {
+            setError(result.error || 'Ocurrió un error al completar el perfil.');
+        }
+    };
 
   return (
     <SafeAreaView style={{flex: 1,
@@ -136,6 +149,16 @@ const RegisterProfileScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* COMPONENTE DE ALERTA */}
+            <CustomAlertModal
+                visible={modalConfig.visible}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                confirmText="OK"
+                onConfirm={modalConfig.onConfirm}
+                onCancel={modalConfig.onConfirm} // El botón de fondo hace lo mismo que OK
+            />
     </SafeAreaView>
   );
 };

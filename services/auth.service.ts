@@ -113,6 +113,17 @@ const logout = async (): Promise<void> => {
   }
 };
 
+// --- Función de Verificación de Cuenta ---
+const verifyAccount = async (token: string): Promise<AuthResponse> => {
+    try {
+        await axios.post(`${API_URL}/verify-account`, { token });
+        return { success: true };
+    } catch (error) {
+        const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : 'Error de conexión.';
+        return { success: false, error: errorMessage };
+    }
+};
+
 export const AuthService = {
   login,
   registerCredentials,
@@ -121,4 +132,5 @@ export const AuthService = {
   verifyOtp,
   resetPassword,
   logout,
+  verifyAccount,
 };

@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, Image, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, ScrollView
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { Link, useRouter } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../hooks/useAuth';
+import CustomAlertModal from '../../components/CustomAlertModal';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -20,6 +21,8 @@ export default function LoginScreen() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [emailIsFocused, setEmailIsFocused] = useState(false);
   const [passwordIsFocused, setPasswordIsFocused] = useState(false);
+  const params = useLocalSearchParams();
+  const [alertConfig, setAlertConfig] = useState({ visible: false, title: '', message: '' });
 
   const handleLogin = async () => {
     if (isLoginLoading) return;
@@ -30,7 +33,7 @@ export default function LoginScreen() {
 
     const result = await login(email, password);
 
-    // ✅ 3. AÑADIMOS LA LÓGICA DE NAVEGACIÓN
+    // AÑADIMOS LA LÓGICA DE NAVEGACIÓN
     if (result.success) {
       // Si el login es exitoso, navegamos a la pantalla de Home.
       // Usamos 'replace' para que el usuario no pueda volver atrás.
@@ -40,6 +43,24 @@ export default function LoginScreen() {
       Alert.alert('Error de inicio de sesión', result.error || 'Ocurrió un error inesperado.');
     }
   };
+
+  // Este useEffect escucha los parámetros de la URL
+    useEffect(() => {
+        if (params.verified === 'true') {
+            setAlertConfig({
+                visible: true,
+                title: '¡Cuenta Confirmada!',
+                message: 'Tu cuenta ha sido verificada exitosamente. Ya puedes iniciar sesión.',
+            });
+        } else if (params.error) {
+            setAlertConfig({
+                visible: true,
+                title: 'Error de Verificación',
+                message: 'El enlace de activación es inválido o ha expirado. Por favor, intenta registrarte de nuevo.',
+            });
+        }
+    }, [params]);
+  
 
   return (
     <SafeAreaView style={{
@@ -137,11 +158,20 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* COMPONENTE DE ALERTA */}
+            <CustomAlertModal
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                confirmText="OK"
+                onConfirm={() => setAlertConfig({ ...alertConfig, visible: false })}
+                onCancel={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
     </SafeAreaView>
   );
 }
 
-// ✅ CAMBIO: Estilos actualizados con la nueva paleta y tipografía
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
@@ -201,7 +231,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
   },
-  passwordInput: { flex: 1, fontSize: 16 },
+  passwordInput: { 
+    flex: 1,
+    fontSize: 16,    
+    color: Colors.text,
+  },
   forgotLink: {
     fontFamily: 'Roboto_500Medium',
     color: Colors.link,
