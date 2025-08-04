@@ -1,42 +1,47 @@
-import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthService } from '../services/auth.service';
 import Colors from '../constants/Colors';
 
 const VerifyAccountScreen = () => {
     const router = useRouter();
-    // 1. Obtiene el 'token' que viene en el enlace profundo (ej: manualesapp://verify-account?token=...)
     const { token } = useLocalSearchParams<{ token: string }>();
 
     useEffect(() => {
         const verify = async () => {
-            if (!token) {
-                // Si no hay token, redirige al login con un error
-                router.replace('/(auth)/login?error=invalid_token');
-                return;
-            }
-
-            // 2. Llama al servicio de autenticación para verificar el token en el backend
-            const result = await AuthService.verifyAccount(token);
-
-            // 3. Redirige al login con el resultado
-            if (result.success) {
-                // Si es exitoso, añade el parámetro ?verified=true
-                router.replace('/(auth)/login?verified=true');
-            } else {
-                // Si falla, añade el parámetro ?error=verification_failed
-                router.replace('/(auth)/login?error=verification_failed');
+            // Usamos try/catch para manejar cualquier error
+            try {
+                if (!token) {
+                    // Si no hay token en la URL, es un error
+                    throw new Error('invalid_token');
+                }
+                
+                const result = await AuthService.verifyAccount(token);
+                
+                if (result.success) {
+                    // Si todo va bien, redirige con el parámetro de éxito
+                    router.replace('/(auth)/login?verified=true');
+                } else {
+                    // Si el backend devuelve un error (ej. token expirado), lo lanzamos
+                    throw new Error('verification_failed');
+                }
+            } catch (e: any) {
+                // Si ocurre CUALQUIER error, redirigimos al login con un parámetro de error
+                router.replace(`/(auth)/login?error=${e.message}`);
             }
         };
 
-        verify();
+        // Damos un pequeño respiro para que el loader se vea antes de la llamada
+        setTimeout(verify, 500);
+
     }, [token]);
 
-    // Muestra una pantalla de carga mientras se realiza la verificación
+    // El return no cambia, sigue mostrando un loader
     return (
         <View style={styles.container}>
             <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.text}>Verificando tu cuenta...</Text>
         </View>
     );
 };
@@ -47,6 +52,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center', 
         alignItems: 'center', 
         backgroundColor: Colors.background 
+    },
+    text: {
+        marginTop: 16,
+        fontFamily: 'Roboto_400Regular',
+        fontSize: 16,
+        color: Colors.textSecondary,
     }
 });
 
