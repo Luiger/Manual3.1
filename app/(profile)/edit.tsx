@@ -8,16 +8,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { UserService } from '../../services/user.service';
 import Colors from '../../constants/Colors';
+import CustomAlertModal from '../../components/CustomAlertModal';
 
 const EditProfileScreen = () => {
   const router = useRouter();
-  const { user, token } = useAuth(); // Usamos 'token' para asegurar que el usuario esté cargado
+  const { user, refreshUser  } = useAuth(); // Usamos 'token' para asegurar que el usuario esté cargado
 
   const [formData, setFormData] = useState({
     Nombre: '',
@@ -27,6 +30,7 @@ const EditProfileScreen = () => {
     Cargo: ''
   });
   const [loading, setLoading] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
 
   useEffect(() => {
     // Pre-rellenamos el formulario con los datos del usuario del contexto
@@ -50,15 +54,31 @@ const EditProfileScreen = () => {
     try {
       const result = await UserService.updateProfile(formData);
       if (result.success) {
-        Alert.alert('Éxito', 'Tu perfil ha sido actualizado.', [
-          { text: 'OK', onPress: () => router.back() }
-        ]);
-        // Opcional: podrías actualizar el estado global del usuario aquí si es necesario.
+        // ✅ 4. Refresca los datos del usuario en toda la app
+        await refreshUser();
+        // Muestra la alerta personalizada de éxito
+        setAlertConfig({
+            visible: true,
+            title: 'Éxito',
+            message: 'Tu perfil ha sido actualizado.',
+            onConfirm: () => router.back(),
+        });
       } else {
-        Alert.alert('Error', result.error || 'No se pudo actualizar el perfil.');
+        // Muestra la alerta personalizada de error
+        setAlertConfig({
+            visible: true,
+            title: 'Error',
+            message: result.error || 'No se pudo actualizar el perfil.',
+            onConfirm: () => setAlertConfig({ ...alertConfig, visible: false }),
+        });
       }
     } catch (e) {
-      Alert.alert('Error', 'Ocurrió un error de conexión.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error de Conexión',
+        message: 'Ocurrió un error al conectar con el servidor.',
+        onConfirm: () => setAlertConfig({ ...alertConfig, visible: false }),
+      });
     } finally {
       setLoading(false);
     }
@@ -75,13 +95,49 @@ const EditProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 65}
+      >
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.form}>
-          <View style={styles.inputGroup}><Text style={styles.label}>Nombre</Text><TextInput style={styles.input} value={formData.Nombre} onChangeText={(val) => handleInputChange('Nombre', val)} /></View>
-          <View style={styles.inputGroup}><Text style={styles.label}>Apellido</Text><TextInput style={styles.input} value={formData.Apellido} onChangeText={(val) => handleInputChange('Apellido', val)} /></View>
-          <View style={styles.inputGroup}><Text style={styles.label}>Teléfono</Text><TextInput style={styles.input} value={formData.Telefono} onChangeText={(val) => handleInputChange('Telefono', val)} keyboardType="phone-pad" /></View>
-          <View style={styles.inputGroup}><Text style={styles.label}>Institución</Text><TextInput style={styles.input} value={formData.Institucion} onChangeText={(val) => handleInputChange('Institucion', val)} /></View>
-          <View style={styles.inputGroup}><Text style={styles.label}>Cargo</Text><TextInput style={styles.input} value={formData.Cargo} onChangeText={(val) => handleInputChange('Cargo', val)} /></View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nombre</Text>
+            <TextInput 
+              style={styles.input} 
+              value={formData.Nombre} 
+              onChangeText={(val) => handleInputChange('Nombre', val)} />
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Apellido</Text>
+            <TextInput 
+              style={styles.input} 
+              value={formData.Apellido} 
+              onChangeText={(val) => handleInputChange('Apellido', val)} />
+            </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Teléfono</Text>
+            <TextInput 
+            style={styles.input} 
+            value={formData.Telefono} 
+            onChangeText={(val) => handleInputChange('Telefono', val)} 
+            keyboardType="phone-pad" />
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Institución</Text>
+            <TextInput 
+            style={styles.input} 
+            value={formData.Institucion} 
+            onChangeText={(val) => handleInputChange('Institucion', val)} />
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Cargo</Text>
+            <TextInput 
+            style={styles.input} 
+            value={formData.Cargo} 
+            onChangeText={(val) => handleInputChange('Cargo', val)} />
+          </View>
         </View>
         <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSaveChanges} disabled={loading}>
           {loading ? (
@@ -91,6 +147,16 @@ const EditProfileScreen = () => {
           )}
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
+
+      <CustomAlertModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText="OK"
+        onConfirm={alertConfig.onConfirm}
+        onCancel={alertConfig.onConfirm}
+      />
     </SafeAreaView>
   );
 }

@@ -23,6 +23,7 @@ interface AuthContextData {
   isLoginLoading: boolean;   // Para la acción del botón de login
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -60,6 +61,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadUserFromStorage();
   }, []);
 
+  const refreshUser = async () => {
+    try {
+      const response = await UserService.getProfile();
+      if (response.success && response.data) {
+        setUser(response.data);
+      }
+    } catch (e) {
+      console.error('Error al refrescar el perfil del usuario:', e);
+    }
+};
   const login = async (email: string, password: string) => {
     // Este 'loading' es solo para la acción de login
     setIsLoginLoading(true);
@@ -104,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isSessionLoading, isLoginLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isSessionLoading, isLoginLoading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
