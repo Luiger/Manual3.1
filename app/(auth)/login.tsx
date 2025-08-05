@@ -25,6 +25,7 @@ export default function LoginScreen() {
   const [alertConfig, setAlertConfig] = useState({ visible: false, title: '', message: '' });
   // Estado para manejar alertas
   const [hasShownAlert, setHasShownAlert] = useState(false);
+  const [error, setError] = useState('');
 
   // Este useEffect escucha los parámetros de la URL
     useEffect(() => {
@@ -47,21 +48,24 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (isLoginLoading) return;
+    // Limpiamos el error previo
+    setError('');
+    // Validamos que los campos no estén vacíos
     if (!email || !password) {
-      Alert.alert('Campos incompletos', 'Por favor, ingresa tu correo y contraseña.');
-      return;
+        setError('Por favor, ingresa tu correo y contraseña.');
+        return;
     }
 
     const result = await login(email, password);
 
-    // AÑADIMOS LA LÓGICA DE NAVEGACIÓN
+    // LÓGICA DE NAVEGACIÓN
     if (result.success) {
       // Si el login es exitoso, navegamos a la pantalla de Home.
       // Usamos 'replace' para que el usuario no pueda volver atrás.
       router.replace('/(tabs)/home');
     } else {
       // Si falla, mostramos el error que viene del backend.
-      Alert.alert('Error de inicio de sesión', result.error || 'Ocurrió un error inesperado.');
+      setError(result.error || 'Ocurrió un error inesperado.');
     }
   };
   
@@ -137,6 +141,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.footer}>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
             <TouchableOpacity
               onPress={handleLogin}
               style={[styles.button, isLoginLoading && styles.buttonInactive]}
@@ -178,13 +183,18 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
-    backgroundColor: Colors.background },
+    backgroundColor: Colors.background 
+  },
   scrollContainer: { 
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 10,
+    paddingBottom: 0,
   },
-  header: { width: '100%', marginBottom: 32, alignItems: 'center' },
+  header: { 
+    width: '100%', 
+    marginBottom: 32, 
+    alignItems: 'center' 
+  },
   title: {
     fontFamily: 'Roboto_500Medium',
     fontSize: 24,
@@ -245,7 +255,17 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 14,
   },
-  footer: { width: '100%', marginTop: 32 },
+  footer: { 
+    width: '100%', 
+    marginTop: 20 
+  },
+  errorText: {
+    color: Colors.error,
+    fontFamily: 'Roboto_400Regular',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontSize: 15,
+  },
   button: {
     width: '100%',
     backgroundColor: Colors.primary,

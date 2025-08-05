@@ -157,7 +157,11 @@ const SupportScreen = () => {
           );
         })}
       </ScrollView>
-      
+
+      {/* Modal de alerta para usuarios gratuitos */}
+      {modalVisible && (
+        <View style={styles.overlay} />
+      )}      
 
       <CustomAlertModal
         visible={modalVisible}
@@ -182,7 +186,12 @@ const styles = StyleSheet.create({
   alignItems: 'center', // permite que el ícono se alinee arriba si subtítulo es más largo
   minHeight: 64,
   justifyContent: 'space-between',
-},
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 1, // Asegura que esté por encima del contenido pero por debajo del modal
+  },
   container: {
     padding: 16,
   },

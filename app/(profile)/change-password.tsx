@@ -4,7 +4,6 @@ import {
   ScrollView, Alert, ActivityIndicator, Platform, KeyboardAvoidingView
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
 import * as Yup from 'yup';
 import { UserService } from '../../services/user.service';
 import Colors from '../../constants/Colors';

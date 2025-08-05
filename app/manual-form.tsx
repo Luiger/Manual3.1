@@ -124,10 +124,22 @@ const ManualProFormScreen = () => {
         };
         const result = await FormService.submitManualContrataciones(payload);
         if (result.success) {
-            Alert.alert('Éxito', 'Formulario enviado correctamente.', [{ text: 'OK', onPress: () => router.back() }]);
-        } else {
-            setError(result.error || 'Ocurrió un error al enviar el formulario.');
-        }
+                // Se reemplaza el Alert.alert nativo por setModalConfig
+                setModalConfig({
+                    visible: true,
+                    title: 'Éxito',
+                    message: 'Formulario enviado correctamente.',
+                    confirmText: 'OK',
+                    cancelText: '', // No hay botón de cancelar
+                    onConfirm: () => {
+                        setModalConfig(prev => ({ ...prev, visible: false }));
+                        router.back();
+                    },
+                    onCancel: () => {}
+                });
+            } else {
+                setError(result.error || 'Ocurrió un error al enviar el formulario.');
+            }
     } catch (e) {
         setError('Ocurrió un error inesperado al conectar con el servidor.');
     } finally {

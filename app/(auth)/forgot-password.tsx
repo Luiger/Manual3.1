@@ -8,9 +8,9 @@ import { useRouter, useLocalSearchParams  } from 'expo-router';
 import * as Yup from 'yup';
 import * as SecureStore from 'expo-secure-store';
 import { Feather } from '@expo/vector-icons';
-
 import { AuthService } from '../../services/auth.service';
 import Colors from '../../constants/Colors';
+import CustomAlertModal from '../../components/CustomAlertModal';
 
 // --- Componente Stepper para 3 pasos ---
 const Stepper = ({ currentStep }: { currentStep: number }) => {
@@ -55,6 +55,7 @@ const ForgotPasswordScreen = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isStepValid, setIsStepValid] = useState(false);
+    const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
 
     //  Añade este useEffect para manejar el enlace profundo
     useEffect(() => {
@@ -120,11 +121,18 @@ const ForgotPasswordScreen = () => {
             return;
         }
         const result = await AuthService.resetPassword(password, resetToken);
+        
         if (result.success) {
             await SecureStore.deleteItemAsync('resetToken');
-            Alert.alert('Éxito', 'Tu contraseña ha sido actualizada.', [
-                { text: 'OK', onPress: () => router.replace('/(auth)/login') }
-            ]);
+            setModalConfig({
+                visible: true,
+                title: 'Éxito',
+                message: 'Tu contraseña ha sido actualizada.',
+                onConfirm: () => {
+                    setModalConfig(prev => ({ ...prev, visible: false }));
+                    router.replace('/(auth)/login');
+                }
+            });
         } else {
             setError(result.error || 'Ocurrió un error.');
         }
@@ -183,6 +191,16 @@ const ForgotPasswordScreen = () => {
                     {error ? <Text style={styles.errorText}>{error}</Text> : null}
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {modalConfig.visible && <View style={styles.overlay} />}
+            <CustomAlertModal
+                visible={modalConfig.visible}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                confirmText="OK"
+                onConfirm={modalConfig.onConfirm}
+                onCancel={modalConfig.onConfirm} // OK hace lo mismo que cerrar
+            />
         </SafeAreaView>
     );
 };
@@ -190,6 +208,11 @@ const ForgotPasswordScreen = () => {
 // ✅ Estilos actualizados con la nueva paleta y tipografía
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.background },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 1,
+  },
   keyboardAvoiding: { flex: 1 },
   scrollContainer: { flexGrow: 1, padding: 24, paddingTop: 16 },
   title: { fontFamily: 'Roboto_700Bold', fontSize: 24, textAlign: 'center', color: Colors.text, marginBottom: 8 },
