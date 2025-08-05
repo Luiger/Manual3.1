@@ -38,6 +38,7 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <Stack>
             {/* El resto de la configuración del Stack se mantiene igual */}
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(profile)" options={{ headerShown: false }} />

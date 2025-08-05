@@ -111,7 +111,7 @@ const SupportScreen = () => {
         <TouchableOpacity style={styles.card} onPress={handlePersonalizedSupportPress} activeOpacity={0.7}>
           <View style={styles.cardContent}>
             <FontAwesome5 name="whatsapp" size={24} color={Colors.whatsapp} style={styles.icon} />
-            <Text style={styles.cardTitle}>Soporte Técnico Personalizado</Text>
+            <Text style={styles.cardTitle}>Soporte técnico personalizado</Text>
           </View>
           <Ionicons name="chevron-forward" size={22} color={Colors.textSecondary} />
         </TouchableOpacity>

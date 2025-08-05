@@ -23,6 +23,27 @@ export default function LoginScreen() {
   const [passwordIsFocused, setPasswordIsFocused] = useState(false);
   const params = useLocalSearchParams();
   const [alertConfig, setAlertConfig] = useState({ visible: false, title: '', message: '' });
+  // Estado para manejar alertas
+  const [hasShownAlert, setHasShownAlert] = useState(false);
+
+  // Este useEffect escucha los parámetros de la URL
+    useEffect(() => {
+        if (params.verified === 'true' && !hasShownAlert) {
+            setAlertConfig({
+                visible: true,
+                title: '¡Cuenta verificada!',
+                message: 'Tu cuenta ha sido verificada exitosamente. Ya puedes iniciar sesión.',
+            });
+            setHasShownAlert(true);
+        } else if (params.error && !hasShownAlert) {
+            setAlertConfig({
+                visible: true,
+                title: 'Error de Verificación',
+                message: 'El enlace de activación es inválido o ha expirado. Por favor, intenta registrarte de nuevo.',
+            });
+            setHasShownAlert(true);
+        }
+    }, [params, hasShownAlert]);
 
   const handleLogin = async () => {
     if (isLoginLoading) return;
@@ -43,25 +64,7 @@ export default function LoginScreen() {
       Alert.alert('Error de inicio de sesión', result.error || 'Ocurrió un error inesperado.');
     }
   };
-
-  // Este useEffect escucha los parámetros de la URL
-    useEffect(() => {
-        if (params.verified === 'true') {
-            setAlertConfig({
-                visible: true,
-                title: '¡Cuenta Confirmada!',
-                message: 'Tu cuenta ha sido verificada exitosamente. Ya puedes iniciar sesión.',
-            });
-        } else if (params.error) {
-            setAlertConfig({
-                visible: true,
-                title: 'Error de Verificación',
-                message: 'El enlace de activación es inválido o ha expirado. Por favor, intenta registrarte de nuevo.',
-            });
-        }
-    }, [params]);
   
-
   return (
     <SafeAreaView style={{
       flex: 1,
@@ -165,8 +168,8 @@ export default function LoginScreen() {
                 title={alertConfig.title}
                 message={alertConfig.message}
                 confirmText="OK"
-                onConfirm={() => setAlertConfig({ ...alertConfig, visible: false })}
-                onCancel={() => setAlertConfig({ ...alertConfig, visible: false })}
+                onConfirm={() => setAlertConfig(prevState => ({ ...prevState, visible: false }))}
+                onCancel={() => setAlertConfig(prevState => ({ ...prevState, visible: false }))}
             />
     </SafeAreaView>
   );
