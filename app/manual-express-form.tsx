@@ -116,7 +116,7 @@ const ManualExpressFormScreen = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 50}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   footer: {
-    marginTop: 16, // Margen para separar del último campo
+    marginTop: 12, // Margen para separar del último campo
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
   loadingText: { fontFamily: 'Roboto_400Regular', marginTop: 16, fontSize: 16, color: Colors.textSecondary },
