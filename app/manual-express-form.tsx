@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import { useAuth } from '../hooks/useAuth';
 import { FormService } from '../services/form.service';
 import Colors from '../constants/Colors';
+import CustomAlertModal from '../components/CustomAlertModal';
 
 // --- DEFINICIONES DEL FORMULARIO ---
 interface FormDataState {
@@ -49,18 +50,29 @@ const ManualExpressFormScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState('');
+  const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });  
 
   useEffect(() => {
     const verifyStatus = async () => {
       try {
         const { hasSubmitted, isRestrictionActive } = await FormService.checkExpressSubmissionStatus();
         if (isRestrictionActive && hasSubmitted) {
-          Alert.alert('Límite alcanzado', 'Ya has llenado este formulario.', [{ text: 'OK', onPress: () => router.back() }]);
+          setModalConfig({
+            visible: true,
+            title: 'Límite alcanzado',
+            message: 'Ya has llenado este formulario.',
+            onConfirm: () => router.back(),
+          });
         } else {
           setIsVerifying(false);
         }
       } catch (e) {
-        Alert.alert('Error', 'No se pudo verificar el estado.', [{ text: 'OK', onPress: () => router.back() }]);
+        setModalConfig({
+          visible: true,
+          title: 'Error',
+          message: 'No se pudo verificar el estado del formulario.',
+          onConfirm: () => router.back(),
+        });
       }
     };
     verifyStatus();
@@ -88,7 +100,15 @@ const ManualExpressFormScreen = () => {
       };
       const result = await FormService.submitManualExpress(payload);
       if (result.success) {
-        Alert.alert('Éxito', 'Formulario enviado correctamente.', [{ text: 'OK', onPress: () => router.back() }]);
+        setModalConfig({
+            visible: true,
+            title: 'Éxito',
+            message: 'Formulario enviado correctamente.',
+            onConfirm: () => {
+                setModalConfig(prev => ({ ...prev, visible: false }));
+                router.back();
+            }
+        });
       } else {
         setError(result.error || 'Ocurrió un error al enviar el formulario.');
       }
@@ -143,6 +163,18 @@ const ManualExpressFormScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {modalConfig.visible && (
+        <View style={styles.overlay} />
+      )}
+      <CustomAlertModal
+        visible={modalConfig.visible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText="OK"
+        onConfirm={modalConfig.onConfirm}
+        onCancel={modalConfig.onConfirm}
+      />
     </SafeAreaView>
   );
 };
@@ -155,6 +187,11 @@ const styles = StyleSheet.create({
   scrollContainer: { 
     padding: 20,
     paddingBottom: 40,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 1,
   },
   footer: {
     marginTop: 12, // Margen para separar del último campo

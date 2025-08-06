@@ -213,7 +213,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
   },
-  passwordInput: { flex: 1, fontSize: 16, fontFamily: 'Roboto_400Regular' },
+  passwordInput: { 
+    flex: 1, 
+    fontSize: 16, 
+    color: Colors.text, 
+    fontFamily: 'Roboto_400Regular' },
   footer: { marginTop: 5},
   errorText: { color: Colors.error, textAlign: 'center', marginBottom: 10, fontFamily: 'Roboto_400Regular' },
   button: {

@@ -83,7 +83,7 @@ const ManualProFormScreen = () => {
           setModalConfig({
             visible: true,
             title: 'Formulario ya enviado',
-            message: 'Ya has completado este manual. Puedes encontrarlo en tu correo o en la sección de Repositorio.',
+            message: 'Ya has completado este manual. Puedes encontrarlo en tu correo o spam',
             confirmText: 'OK',
             cancelText: '',
             onConfirm: handleGoBack,
@@ -128,7 +128,7 @@ const ManualProFormScreen = () => {
                 setModalConfig({
                     visible: true,
                     title: 'Éxito',
-                    message: 'Formulario enviado correctamente.',
+                    message: 'Formulario generado correctamente. En 5 minutos lo recibirás en tu correo.',
                     confirmText: 'OK',
                     cancelText: '', // No hay botón de cancelar
                     onConfirm: () => {
@@ -207,7 +207,7 @@ const ManualProFormScreen = () => {
           </View>
           <View style={styles.warningBox}>
             <Feather name="alert-triangle" size={20} color={Colors.textSecondary} />
-            <Text style={styles.warningText}>Asegúrate de la dirección de correo ingresada. Eres responsable del acceso que compartes a este documento.</Text>
+            <Text style={styles.warningText}>Por favor, asegúrate de que el correo sea correcto. Recuerda que al compartirlo, das acceso a tu manual, por lo cual es tu responsabilidad.</Text>
           </View>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity style={[styles.button, isFormValid ? styles.buttonPro : styles.buttonDisabled]} onPress={handleSubmit} disabled={!isFormValid || isSubmitting} >
@@ -220,7 +220,6 @@ const ManualProFormScreen = () => {
 
   // Variable para saber cuándo mostrar el contenido principal (header y formulario)
   
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right', 'top']}>
 
