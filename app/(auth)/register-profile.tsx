@@ -4,12 +4,14 @@ import {
   Platform, Alert, KeyboardAvoidingView, ScrollView, TextInput
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, Link } from 'expo-router';
+import { useRouter, Link, useLocalSearchParams  } from 'expo-router';
 import * as Yup from 'yup';
 import * as SecureStore from 'expo-secure-store';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthService } from '../../services/auth.service';
 import Colors from '../../constants/Colors';
 import CustomAlertModal from '../../components/CustomAlertModal';
+import CustomDropdown from '../../components/CustomDropdown';
 
 // --- Componente Stepper y Esquema de Validación (sin cambios) ---
 const Stepper = ({ currentStep }: { currentStep: number }) => (
@@ -25,6 +27,7 @@ const validationSchema = Yup.object().shape({
 
 // --- Componente Principal ---
 const RegisterProfileScreen = () => {
+  const { email, password } = useLocalSearchParams<{ email: string, password: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [profile, setProfile] = useState({ Nombre: '', Apellido: '', Telefono: '', Institucion: '', Cargo: '' });
@@ -32,29 +35,52 @@ const RegisterProfileScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
+  // Estados requeridos por react-native-dropdown-picker
+  const [open, setOpen] = useState(false); // Para saber si el dropdown está abierto o cerrado
+  const [prefixValue, setPrefixValue] = useState('0414'); // El valor inicial del dropdown
+  const [items, setItems] = useState([
+    { label: '0412', value: '0412' },
+    { label: '0414', value: '0414' },
+    { label: '0416', value: '0416' },
+    { label: '0424', value: '0424' },
+    { label: '0426', value: '0426' },
+  ]);
+  const [phoneNumber, setPhoneNumber] = useState(''); // El resto del número
+  
+  useEffect(() => {
+    const fullPhoneNumber = `${prefixValue}${phoneNumber}`;
+    handleInputChange('Telefono', fullPhoneNumber);
+  }, [prefixValue, phoneNumber]);
 
-  useEffect(() => { validationSchema.isValid(profile).then(setIsFormValid); }, [profile]);
-  const handleInputChange = (name: keyof typeof profile, value: string) => { setProfile(prevState => ({ ...prevState, [name]: value })); };
+  useEffect(() => { 
+    validationSchema.isValid(profile).then(setIsFormValid); 
+  }, [profile]);
+
+  const handleInputChange = (name: keyof typeof profile, value: string) => { 
+    setProfile(prevState => ({ ...prevState, [name]: value })); 
+  };
   const handleCompleteProfile = async () => {
     if (!isFormValid || loading) return;
     setLoading(true);
     setError('');
-    const tempToken = await SecureStore.getItemAsync('tempRegToken');
-    if (!tempToken) {
-      Alert.alert('Sesión Expirada', 'Por favor, inicia el proceso de registro nuevamente.', [{ text: 'OK', onPress: () => router.replace('/(auth)/register') }]);
-      setLoading(false);
-      return;
-    }
-    // 1. Llama al backend. Ahora esta función enviará el correo.
-        const result = await AuthService.registerProfile(profile, tempToken);
-        setLoading(false);
+
+    // Crea el objeto con TODOS los datos del usuario
+    const fullUserData = {
+      email,
+      password,
+      ...profile,
+    };
+
+    // Llama a la nueva y única función de registro
+    const result = await AuthService.register(fullUserData);
+    setLoading(false);
 
         if (result.success) {
-            // 2. Si el backend responde bien, muestra la alerta
+            // Si el backend responde bien, muestra la alerta
             setModalConfig({
                 visible: true,
                 title: '¡Revisa tu correo!',
-                message: 'Hemos enviado un enlace a tu dirección para que confirmes tu cuenta. Por favor, revisa tu bandeja de entrada y spam.',
+                message: 'Hemos enviado un enlace a tu dirección para que confirmes tu cuenta. Por favor, revisa tu bandeja de entrada o spam.',
                 onConfirm: () => {
                     setModalConfig({ ...modalConfig, visible: false });
                     router.replace('/(auth)/login');
@@ -78,9 +104,9 @@ const RegisterProfileScreen = () => {
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"          
-        >
-        
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}          
+        >        
           <View style={styles.header}>
             <Text style={styles.title}>Completa tus datos</Text>
             <Text style={styles.subtitle}>Por favor, introduce tus datos personales</Text>
@@ -93,21 +119,39 @@ const RegisterProfileScreen = () => {
               style={styles.input} 
               placeholder="Ingresa tu nombre" 
               value={profile.Nombre} 
-              onChangeText={(val) => handleInputChange('Nombre', val)} /></View>
+              onChangeText={(val) => handleInputChange('Nombre', val)} />
+            </View>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Apellido</Text>
               <TextInput 
               style={styles.input} 
               placeholder="Ingresa tu apellido" 
               value={profile.Apellido} 
-              onChangeText={(val) => handleInputChange('Apellido', val)} /></View>
-            <View style={styles.inputContainer}>
+              onChangeText={(val) => handleInputChange('Apellido', val)} />
+            </View>
+            <View style={[styles.inputContainer, { zIndex: open ? 1000 : 0 }]}>
               <Text style={styles.label}>Teléfono</Text>
-              <TextInput 
-              style={styles.input} 
-              placeholder="Ingresa tu número" 
-              value={profile.Telefono} 
-              onChangeText={(val) => handleInputChange('Telefono', val)} keyboardType="phone-pad" /></View>
+              <View style={styles.phoneInputContainer}>
+                <View style={{ width: 100 }}>
+                  <CustomDropdown
+                    open={open}
+                    setOpen={setOpen}
+                    options={items}
+                    value={prefixValue}
+                    onSelect={setPrefixValue}
+                    placeholder="Prefijo"
+                  />
+                </View>
+                <TextInput
+                  style={styles.phoneInput}
+                  placeholder="Ingresa tu número"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                  maxLength={7}
+                />
+              </View>
+            </View>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Institución</Text>
               <TextInput 
@@ -182,6 +226,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     paddingHorizontal: 16,
+  },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  phoneInput: {
+    flex: 1,
+    height: 56,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    fontFamily: 'Roboto_400Regular',
+  },
+  dropdownPicker: {
+    height: 56,
+    borderColor: Colors.border,
+    borderRadius: 8,
+  },
+  dropdownContainer: {
+    borderColor: Colors.border,
   },
   legalText: {
     fontFamily: 'Roboto_400Regular',

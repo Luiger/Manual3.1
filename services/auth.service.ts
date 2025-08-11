@@ -12,11 +12,11 @@ interface AuthResponse {
   token?: string;
 }
 
-interface RegisterCredentialsResponse {
+/*interface RegisterCredentialsResponse {
   success: boolean;
   error?: string;
   tempToken?: string;
-}
+}*/
 
 interface VerifyOtpResponse {
   success: boolean;
@@ -39,8 +39,19 @@ const login = async (email, password): Promise<AuthResponse> => {
   }
 };
 
+// --- Función de Registro Completo ---
+const register = async (userData): Promise<AuthResponse> => {
+    try {
+        await axios.post(`${API_URL}/register`, userData);
+        return { success: true };
+    } catch (error) {
+        const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : 'Error al registrar la cuenta.';
+        return { success: false, error: errorMessage };
+    }
+};
+
 // --- Función de Registro (Paso 1) ---
-const registerCredentials = async (email, password): Promise<RegisterCredentialsResponse> => {
+/*const registerCredentials = async (email, password): Promise<RegisterCredentialsResponse> => {
   try {
     const response = await axios.post(`${API_URL}/register/credentials`, { email, password });
     if (response.data?.tempToken) {
@@ -64,7 +75,7 @@ const registerProfile = async (profileData, tempToken): Promise<AuthResponse> =>
     const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : 'Error al registrar el perfil.';
     return { success: false, error: errorMessage };
   }
-};
+};*/
 
 // --- Función para Solicitar Recuperación de Contraseña ---
 const forgotPassword = async (email: string): Promise<AuthResponse> => {
@@ -126,8 +137,7 @@ const verifyAccount = async (token: string): Promise<AuthResponse> => {
 
 export const AuthService = {
   login,
-  registerCredentials,
-  registerProfile,
+  register,
   forgotPassword,
   verifyOtp,
   resetPassword,

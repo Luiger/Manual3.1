@@ -65,29 +65,23 @@ const RegisterCredentialsScreen = () => {
     setFormData(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const handleNextStep = async () => {
-    if (!isFormValid || loading) return;
-
-    setError('');
-    setLoading(true);
-
-    try {
-      const result = await AuthService.registerCredentials(formData.email, formData.password);
-      if (result.success && result.tempToken) {
-        await SecureStore.setItemAsync('tempRegToken', result.tempToken);
-        router.push('/(auth)/register-profile');
-
-        // Limpiamos el estado después de navegar.
-        setFormData({ email: '', password: '', confirmPassword: '' });
-        
-      } else {
-        setError(result.error || 'Ocurrió un error durante el registro.');
-      }
-    } catch (e) {
-      setError('Ocurrió un error inesperado. Inténtalo de nuevo.');
-    } finally {
-      setLoading(false);
+  const handleNextStep = () => {
+    // 1. Verifica si el formulario es válido (email y contraseñas coinciden).
+    // Ya no necesita ser 'async' ni manejar un estado de 'loading'
+    // porque no se comunica con el backend en este paso.
+    if (!isFormValid) {
+      return;
     }
+
+    // 2. Navega a la siguiente pantalla ('register-profile')
+    //    y pasa el email y la contraseña como parámetros para ser usados en el siguiente paso.
+    router.push({
+      pathname: '/(auth)/register-profile',
+      params: { 
+        email: formData.email, 
+        password: formData.password 
+      }
+    });
   };
 
   return (

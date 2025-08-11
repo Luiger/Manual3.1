@@ -1,12 +1,11 @@
 import React, { createContext, useState, useEffect, useContext, useRef, useCallback } from 'react';
-// ✅ 1. Importa los componentes necesarios para la UI
 import { View, StyleSheet } from 'react-native'; 
 import * as SecureStore from 'expo-secure-store';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import apiClient from '../services/apiClient';
 import { jwtDecode } from 'jwt-decode';
-import CustomAlertModal from '../components/CustomAlertModal'; // Importa tu modal
+import CustomAlertModal from '../components/CustomAlertModal';
 import Colors from '../constants/Colors';
 
 interface User {
@@ -37,11 +36,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
-
-  // 1. El useRef AHORA ESTÁ DENTRO del componente, como debe ser.
   const sessionTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // 2. La función logout se define primero y se envuelve en useCallback para estabilidad.
+  const logoutRef = useRef(async () => {});
+
+  // La función logout se define primero y se envuelve en useCallback para estabilidad.
   const logout = useCallback(async () => {
     if (sessionTimer.current) {
       clearTimeout(sessionTimer.current);
@@ -53,7 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await SecureStore.deleteItemAsync('userToken');
   }, []);
 
-  // 3. La función setupSessionTimer AHORA ESTÁ DENTRO y puede "ver" a logout.
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
+
+  // La función setupSessionTimer AHORA ESTÁ DENTRO y puede "ver" a logout.
   const setupSessionTimer = useCallback((jwtToken: string) => {
     if (sessionTimer.current) {
       clearTimeout(sessionTimer.current);
@@ -72,14 +75,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             message: 'Tu sesión ha finalizado por seguridad. Por favor, inicia sesión de nuevo.',
             onConfirm: () => {
                 setModalConfig(prev => ({ ...prev, visible: false }));
-                logout();
+                logoutRef.current();
             }
         });
       }, timeoutDuration);
     } else {
-      logout();
+      logoutRef.current();
     }
-  }, [logout]); // Depende de la función logout
+  }, []);
 
   useEffect(() => {
     async function loadUserFromStorage() {
