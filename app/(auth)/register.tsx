@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   TextInput,
-  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
@@ -57,12 +56,40 @@ const RegisterCredentialsScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
+  // Estado para los mensajes de validación en tiempo real.
+  const [validationMessages, setValidationMessages] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
   useEffect(() => {
     validationSchema.isValid(formData).then(setIsFormValid);
   }, [formData]);
 
   const handleInputChange = (name: keyof typeof formData, value: string) => {
-    setFormData(prevState => ({ ...prevState, [name]: value }));
+    setFormData(prevState => {
+      const newState = { ...prevState, [name]: value };
+      
+      // Valida la confirmación de contraseña cada vez que cualquiera de las dos cambia.
+      if (name === 'password' || name === 'confirmPassword') {
+        if (newState.confirmPassword && newState.password !== newState.confirmPassword) {
+          setValidationMessages(prev => ({ ...prev, confirmPassword: 'Las contraseñas deben coincidir' }));
+        } else {
+          setValidationMessages(prev => ({ ...prev, confirmPassword: '' }));
+        }
+      }
+      
+      // Valida el largo de la contraseña principal
+      if (name === 'password') {
+          if (value.length > 0 && value.length < 8) {
+              setValidationMessages(prev => ({ ...prev, password: 'La contraseña debe poseer mínimo 8 caracteres' }));
+          } else {
+              setValidationMessages(prev => ({ ...prev, password: '' }));
+          }
+      }
+      return newState;
+    });
   };
 
   const handleNextStep = () => {
@@ -105,21 +132,70 @@ const RegisterCredentialsScreen = () => {
             <View style={styles.form}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Correo electrónico</Text>
-                <TextInput style={styles.input} placeholder="Ingresa tu correo" value={formData.email} onChangeText={(val) => handleInputChange('email', val)} keyboardType="email-address" autoCapitalize="none" />
+                <TextInput style={styles.input} 
+                placeholder="Ingresa tu correo" 
+                value={formData.email} 
+                onChangeText={(val) => handleInputChange('email', val)} 
+                keyboardType="email-address" 
+                autoCapitalize="none"
+                // Añadimos onFocus y onBlur para el mensaje de ayuda.
+                  onFocus={() => setValidationMessages(prev => ({ ...prev, email: 'Ej. correo@example.com' }))}
+                  onBlur={() => setValidationMessages(prev => ({ ...prev, email: '' }))}
+                />
+                {/* Mostramos el mensaje de validación si existe. */}
+                {validationMessages.email && <Text style={styles.validationText}>{validationMessages.email}</Text>}               
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Contraseña</Text>
                 <View style={styles.passwordWrapper}>
-                  <TextInput style={styles.passwordInput} placeholder="Mínimo 8 caracteres" value={formData.password} onChangeText={(val) => handleInputChange('password', val)} secureTextEntry={!isPasswordVisible} />
-                  <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}><Feather name={isPasswordVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} /></TouchableOpacity>
+                  <TextInput 
+                    style={styles.passwordInput} 
+                    placeholder="Mínimo 8 caracteres" 
+                    value={formData.password} 
+                    onChangeText={(val) => handleInputChange('password', val)} 
+                    secureTextEntry={!isPasswordVisible}
+                    onFocus={() => {
+                    if (formData.password.length < 8) {
+                      setValidationMessages(prev => ({ ...prev, password: 'La contraseña debe poseer mínimo 8 caracteres' }));
+                    }
+                    }}
+                  />
+                  <TouchableOpacity 
+                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                      <Feather 
+                        name={isPasswordVisible ? 'eye-off' : 'eye'} 
+                        size={22} 
+                        color={Colors.textSecondary} 
+                      />
+                  </TouchableOpacity>
                 </View>
+                {validationMessages.password && <Text style={styles.validationText}>{validationMessages.password}</Text>}
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Confirmar Contraseña</Text>
                 <View style={styles.passwordWrapper}>
-                  <TextInput style={styles.passwordInput} placeholder="Repite tu contraseña" value={formData.confirmPassword} onChangeText={(val) => handleInputChange('confirmPassword', val)} secureTextEntry={!isConfirmPasswordVisible} />
-                  <TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}><Feather name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} /></TouchableOpacity>
+                  <TextInput 
+                  style={styles.passwordInput} 
+                  placeholder="Repite tu contraseña" 
+                  value={formData.confirmPassword} 
+                  onChangeText={(val) => handleInputChange('confirmPassword', val)} 
+                  secureTextEntry={!isConfirmPasswordVisible}
+                  onFocus={() => {
+                    if (formData.password !== formData.confirmPassword) {
+                      setValidationMessages(prev => ({ ...prev, confirmPassword: 'Las contraseñas deben coincidir' }));
+                    }
+                  }}
+                  />
+                  <TouchableOpacity 
+                    onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}>
+                      <Feather 
+                        name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} 
+                        size={22} 
+                        color={Colors.textSecondary} 
+                      />
+                  </TouchableOpacity>
                 </View>
+                {validationMessages.confirmPassword && <Text style={styles.validationText}>{validationMessages.confirmPassword}</Text>}
               </View>
             </View>
           </View>
@@ -181,6 +257,13 @@ const styles = StyleSheet.create({
   },
   form: { marginTop: 32 },
   inputContainer: { marginBottom: 20 },
+  validationText: {
+    fontFamily: 'Roboto_400Regular',
+    color: Colors.error,
+    fontSize: 13,
+    marginTop: 6,
+    paddingLeft: 4,
+  },
   label: {
     fontFamily: 'Roboto_400Regular',
     fontSize: 14,
