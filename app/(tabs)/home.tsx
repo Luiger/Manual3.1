@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -110,7 +111,7 @@ const Card = ({ icon, title, buttonText, buttonVariant, onPress }) => {
 // --- PANTALLA PRINCIPAL ---
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useAuth(); // Obtenemos el usuario actual
+  const { user, refreshUser } = useAuth(); // Obtenemos el usuario actual y la función refreshUser
 
   // Filtramos las tarjetas antes de mostrarlas
   const visibleCards = cardData.filter(card => {
@@ -119,6 +120,20 @@ export default function HomeScreen() {
     }
     return true;
   });
+
+  // Estado y la lógica para el pull-to-refresh
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshUser();
+    } catch (error) {
+      console.error("Error al refrescar el rol del usuario:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshUser]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -133,7 +148,17 @@ export default function HomeScreen() {
       </View>
       <ScrollView 
         style={styles.scrollView} 
-        contentContainerStyle={styles.contentContainer}>
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+            title="Actualizando..."
+          />
+        }
+      >
         <View style={styles.cardRow}>
           {visibleCards.map(card => (
             <Card
