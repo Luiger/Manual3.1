@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import apiClient from './apiClient';
 
 // Se define la URL base para las llamadas de autenticación.
 // Usamos axios directamente aquí para tener control total sobre los tokens temporales.
@@ -11,12 +12,6 @@ interface AuthResponse {
   error?: string;
   token?: string;
 }
-
-/*interface RegisterCredentialsResponse {
-  success: boolean;
-  error?: string;
-  tempToken?: string;
-}*/
 
 interface VerifyOtpResponse {
   success: boolean;
@@ -49,33 +44,6 @@ const register = async (userData): Promise<AuthResponse> => {
         return { success: false, error: errorMessage };
     }
 };
-
-// --- Función de Registro (Paso 1) ---
-/*const registerCredentials = async (email, password): Promise<RegisterCredentialsResponse> => {
-  try {
-    const response = await axios.post(`${API_URL}/register/credentials`, { email, password });
-    if (response.data?.tempToken) {
-      return { success: true, tempToken: response.data.tempToken };
-    }
-    return { success: false, error: 'No se recibió un token temporal del servidor.' };
-  } catch (error) {
-    const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : 'Error al registrar credenciales.';
-    return { success: false, error: errorMessage };
-  }
-};
-
-// --- Función de Registro (Paso 2) ---
-const registerProfile = async (profileData, tempToken): Promise<AuthResponse> => {
-  try {
-    await axios.post(`${API_URL}/register/profile`, profileData, {
-      headers: { Authorization: `Bearer ${tempToken}` },
-    });
-    return { success: true };
-  } catch (error) {
-    const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : 'Error al registrar el perfil.';
-    return { success: false, error: errorMessage };
-  }
-};*/
 
 // --- Función para Solicitar Recuperación de Contraseña ---
 const forgotPassword = async (email: string): Promise<AuthResponse> => {
@@ -135,6 +103,27 @@ const verifyAccount = async (token: string): Promise<AuthResponse> => {
     }
 };
 
+const refreshToken = async (): Promise<{ success: boolean; token?: string; error?: string }> => {
+  try {
+    // 1. Usamos apiClient porque esta acción REQUIERE que el usuario ya tenga una sesión activa.
+    //    apiClient añade automáticamente el token de autorización a la cabecera.
+    const response = await apiClient.post('/auth/refresh-token');
+
+    if (response.data?.token) {
+      return { success: true, token: response.data.token };
+    }
+    // Si la respuesta no tiene un token, es un error inesperado.
+    return { success: false, error: 'Respuesta inválida del servidor al refrescar el token.' };
+
+  } catch (error) {
+    // 2. Implementamos el mismo manejo de errores profesional que en las otras funciones.
+    const errorMessage = axios.isAxiosError(error) 
+      ? error.response?.data?.message || 'No se pudo refrescar la sesión.'
+      : 'Ocurrió un error inesperado.';
+    return { success: false, error: errorMessage };
+  }
+};
+
 export const AuthService = {
   login,
   register,
@@ -143,4 +132,5 @@ export const AuthService = {
   resetPassword,
   logout,
   verifyAccount,
+  refreshToken,
 };

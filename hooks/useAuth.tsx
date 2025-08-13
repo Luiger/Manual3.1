@@ -1,12 +1,11 @@
 import React, { createContext, useState, useEffect, useContext, useRef, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native'; 
+import { AppState, View, StyleSheet } from 'react-native'; 
 import * as SecureStore from 'expo-secure-store';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import apiClient from '../services/apiClient';
 import { jwtDecode } from 'jwt-decode';
 import CustomAlertModal from '../components/CustomAlertModal';
-import Colors from '../constants/Colors';
 
 interface User {
   Nombre: string;
@@ -37,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
   const sessionTimer = useRef<NodeJS.Timeout | null>(null);
+  const graceTimer = useRef<NodeJS.Timeout | null>(null); // Temporizador para el período de gracia
 
   const logoutRef = useRef(async () => {});
 
@@ -84,6 +84,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // LÓGICA PARA MANEJAR EL ESTADO DE LA APP (SEGUNDO PLANO / PRIMER PLANO)
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState) => {
+      if (nextAppState.match(/inactive|background/)) {
+        // El usuario está saliendo de la app, iniciamos el temporizador de gracia de 15 minutos.
+        if (token) { // Solo si hay una sesión activa
+          console.log('App en segundo plano. Iniciando período de gracia de 15 min.');
+          if (graceTimer.current) clearTimeout(graceTimer.current); // Limpia el anterior si existe
+          graceTimer.current = setTimeout(() => {
+            console.log('Período de gracia finalizado. Cerrando sesión.');
+            logoutRef.current();
+          }, 15 * 60 * 1000); // 15 minutos
+        }
+      } else if (nextAppState === 'active') {
+        // El usuario ha vuelto a la app.
+        console.log('App en primer plano.');
+        // Cancelamos el temporizador de gracia inmediatamente.
+        if (graceTimer.current) {
+          console.log('Período de gracia cancelado.');
+          clearTimeout(graceTimer.current);
+        }
+        
+        // Si hay un token, lo refrescamos para reiniciar la sesión de 1 hora.
+        if (token) {
+          console.log('Refrescando token de sesión...');
+          const result = await AuthService.refreshToken();
+          if (result.success && result.token) {
+            setToken(result.token);
+            await SecureStore.setItemAsync('userToken', result.token);
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${result.token}`;
+            setupSessionTimer(result.token); // Reinicia el contador de 1 hora
+            console.log('Token refrescado y sesión de 1 hora reiniciada.');
+          } else {
+            // Si el refresco falla (ej. el token de 1h ya había expirado), cerramos sesión.
+            logoutRef.current();
+          }
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+      if (graceTimer.current) clearTimeout(graceTimer.current);
+    };
+  }, [token, setupSessionTimer]);
+
+  // Carga inicial del usuario y configuración del token al montar el proveedor.
   useEffect(() => {
     async function loadUserFromStorage() {
       try {
