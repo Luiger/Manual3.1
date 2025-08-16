@@ -143,8 +143,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setupSessionTimer(storedToken);
           const response = await UserService.getProfile();
           if (response.success && response.data) {
+            // Si el perfil se carga correctamente, establecemos el usuario y el timer.
             setUser(response.data);
-          }
+            /*setupSessionTimer(storedToken); */
+          } /*else {
+            // Si la llamada al perfil falla, es un error. Forzamos un logout.
+            throw new Error('Failed to verify session on server.');
+          } */         
         }
       } catch (e) {
         console.error('Error al cargar datos de sesión:', e);

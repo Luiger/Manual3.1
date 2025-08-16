@@ -22,13 +22,19 @@ interface VerifyOtpResponse {
 // --- Función de Login ---
 const login = async (email, password): Promise<AuthResponse> => {
   try {
+    // Llamamos a la API directamente con axios.
     const response = await axios.post(`${API_URL}/login`, { email, password });
+    // Si la respuesta contiene un token, lo guardamos y devolvemos éxito.
     if (response.data?.token) {
+      // Guardamos el token en SecureStore para uso posterior.
       await SecureStore.setItemAsync('userToken', response.data.token);
       return { success: true, token: response.data.token };
     }
+    // Si la respuesta no tiene un token, es un error inesperado.
     return { success: false, error: 'Respuesta inesperada del servidor.' };
   } catch (error) {
+    // Manejo de errores profesional: verificamos si es un error de Axios.
+    // Si es un error de Axios, devolvemos el mensaje de error del servidor.
     const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : 'Error de conexión.';
     return { success: false, error: errorMessage };
   }

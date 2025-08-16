@@ -95,19 +95,24 @@ const ForgotPasswordScreen = () => {
         setLoading(false);
         setStep(2);
     };
-
+    
+    // --- Maneja la verificación del OTP ---
+    // `handleVerifyOtp`: Verifica el OTP ingresado por el usuario.
+    //    - Si el OTP es válido, se guarda en SecureStore y se mueve al paso 3.
+    //    - Si el OTP es incorrecto o ha expirado, se muestra un mensaje de error.
     const handleVerifyOtp = async () => {
-        if (!isStepValid || loading) return;
-        setLoading(true);
-        setError('');
-        const result = await AuthService.verifyOtp(email, otp);
-        if (result.success && result.resetToken) {
-            await SecureStore.setItemAsync('resetToken', result.resetToken);
-            setStep(3);
-        } else {
-            setError(result.error || 'Código incorrecto o expirado.');
-        }
-        setLoading(false);
+    if (!isStepValid || loading) return;
+    setLoading(true);
+    setError(''); // Limpia errores anteriores
+    const result = await AuthService.verifyOtp(email, otp);
+    if (result.success && result.resetToken) {
+        await SecureStore.setItemAsync('resetToken', result.resetToken);
+        setStep(3);
+    } else {
+        // Aquí se guarda el mensaje específico del backend ("Tu código ha expirado...")
+        setError(result.error || 'Código incorrecto o expirado.');
+    }
+    setLoading(false);
     };
 
     const handleResetPassword = async () => {
@@ -160,7 +165,18 @@ const ForgotPasswordScreen = () => {
                         <Text style={styles.title}>Verificar código</Text>
                         <Text style={styles.subtitle}>Hemos enviado un código a {'\n'}<Text style={{fontWeight: 'bold'}}>{email}</Text></Text>
                         <Stepper currentStep={2} />
-                        <View style={styles.inputContainer}><Text style={styles.label}>Código de Verificación</Text><TextInput style={styles.input} placeholder="123456" value={otp} onChangeText={setOtp} keyboardType="number-pad" maxLength={6} /></View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Código de Verificación</Text>
+                            <TextInput 
+                                style={styles.input} 
+                                placeholder="123456" 
+                                value={otp} 
+                                onChangeText={setOtp} 
+                                keyboardType="number-pad" 
+                                maxLength={6} />
+                            {/* Mensaje de error en rojo */}
+                            {error && <Text style={styles.errorText}>{error}</Text>}
+                        </View>
                         <TouchableOpacity style={[styles.button, !isStepValid && styles.buttonDisabled]} onPress={handleVerifyOtp} disabled={!isStepValid || loading}>
                             {loading ? <ActivityIndicator color={Colors.textLight} /> : <Text style={styles.buttonText}>Verificar</Text>}
                         </TouchableOpacity>
@@ -188,7 +204,7 @@ const ForgotPasswordScreen = () => {
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoiding}>
                 <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                     {renderStepContent()}
-                    {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                    {/*error ? <Text style={styles.errorText}>{error}</Text> : null*/}
                 </ScrollView>
             </KeyboardAvoidingView>
 
@@ -205,7 +221,6 @@ const ForgotPasswordScreen = () => {
     );
 };
 
-// ✅ Estilos actualizados con la nueva paleta y tipografía
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.background },
   overlay: {
