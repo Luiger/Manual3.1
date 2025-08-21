@@ -201,7 +201,11 @@ const ChangePasswordScreen = () => {
                                     style={styles.passwordInput}
                                     placeholder='Mínimo 8 caracteres' 
                                     value={newPassword} 
-                                    onChangeText={setNewPassword} 
+                                    onChangeText={(text) => {
+                                        setNewPassword(text);
+                                        // Si hay un error de envío, lo limpia al empezar a escribir.
+                                        if (error.step2) setError(prev => ({ ...prev, step2: '' }));
+                                    }}
                                     secureTextEntry={!isNewVisible}
                                     onFocus={() => {
                                         if (newPassword.length < 8) setValidationMessages(prev => ({...prev, new: 'La contraseña debe poseer mínimo 8 caracteres'}));
@@ -224,7 +228,11 @@ const ChangePasswordScreen = () => {
                                     style={styles.passwordInput}
                                     placeholder='Confirma tu nueva contraseña' 
                                     value={confirmPassword} 
-                                    onChangeText={setConfirmPassword} 
+                                    onChangeText={(text) => {
+                                        setConfirmPassword(text);
+                                        // Si hay un error de envío, lo limpia al empezar a escribir.
+                                        if (error.step2) setError(prev => ({ ...prev, step2: '' }));
+                                    }}
                                     secureTextEntry={!isConfirmVisible}
                                     onFocus={() => {
                                         if (newPassword !== confirmPassword) setValidationMessages(prev => ({...prev, confirm: 'Las contraseñas deben coincidir'}));

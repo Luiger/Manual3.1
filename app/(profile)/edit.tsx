@@ -31,6 +31,8 @@ const EditProfileScreen = () => {
   });
   const [loading, setLoading] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
+  // Estado para el mensaje de error del formulario.
+  const [error, setError] = useState('');
 
   useEffect(() => {
     // Pre-rellenamos el formulario con los datos del usuario del contexto
@@ -50,11 +52,21 @@ const EditProfileScreen = () => {
   };
 
   const handleSaveChanges = async () => {
+    // Limpiamos cualquier error anterior
+    setError('');
+
+    // Añadimos la validación lógica antes de hacer cualquier otra cosa.
+    const { Nombre, Apellido, Telefono, Institucion, Cargo } = formData;
+    if (!Nombre.trim() || !Apellido.trim() || !Telefono.trim() || !Institucion.trim() || !Cargo.trim()) {
+      setError('No pueden haber campos vacíos.');
+      return; // Detiene la ejecución si hay campos vacíos
+    }
+    
     setLoading(true);
     try {
       const result = await UserService.updateProfile(formData);
       if (result.success) {
-        // ✅ 4. Refresca los datos del usuario en toda la app
+        // Refresca los datos del usuario en toda la app
         await refreshUser();
         // Muestra la alerta personalizada de éxito
         setAlertConfig({
@@ -139,6 +151,8 @@ const EditProfileScreen = () => {
             onChangeText={(val) => handleInputChange('Cargo', val)} />
           </View>
         </View>
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSaveChanges} disabled={loading}>
           {loading ? (
             <ActivityIndicator color={Colors.textLight} />
@@ -163,7 +177,7 @@ const EditProfileScreen = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.background },
-  container: { padding: 24 },
+  container: { padding: 24, paddingBottom: 50 },
   form: { width: '100%', gap: 20 },
   inputGroup: {},
   label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.textSecondary, marginBottom: 8 },
@@ -179,6 +193,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#cccccc',
   },
   buttonText: { fontFamily: 'Roboto_500Medium', color: Colors.textLight, fontSize: 16 },
+  errorText: {
+    color: Colors.error,
+    textAlign: 'center',
+    marginBottom: -20,
+    marginTop: 10,
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 15,
+  },
 });
 
 export default EditProfileScreen;
