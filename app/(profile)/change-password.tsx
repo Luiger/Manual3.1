@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity,
-  ScrollView, Alert, ActivityIndicator, Platform, KeyboardAvoidingView
+  ScrollView, Alert, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import { useHeaderHeight } from '@react-navigation/elements';
 import * as Yup from 'yup';
 import { UserService } from '../../services/user.service';
 import Colors from '../../constants/Colors';
@@ -25,6 +26,8 @@ const step2Schema = Yup.object({
 
 const ChangePasswordScreen = () => {
     const router = useRouter();
+    const headerHeight = useHeaderHeight ? useHeaderHeight() : 0;
+
     const [step, setStep] = useState(1);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -39,6 +42,13 @@ const ChangePasswordScreen = () => {
     const [isCurrentVisible, setIsCurrentVisible] = useState(false);
     const [isNewVisible, setIsNewVisible] = useState(false);
     const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+
+    // refs
+    const currentPasswordRef = useRef<TextInput | null>(null);
+    const scrollRef = useRef<ScrollView | null>(null);
+
+    // NUEVO: estado para la altura del teclado
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     // Lógica para validar los formularios en tiempo real
     useEffect(() => {
@@ -65,7 +75,26 @@ const ChangePasswordScreen = () => {
         }
     }, [newPassword, confirmPassword, step]);
 
-    // Función de verificación actualizada para usar el nuevo estado de error.
+    // --- Listeners del Teclado (para obtener la altura) ---
+    useEffect(() => {
+      const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+      const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+      const onShow = (e: any) => {
+        setKeyboardHeight(e.endCoordinates ? e.endCoordinates.height : 250);
+      };
+      const onHide = () => setKeyboardHeight(0);
+
+      const showSub = Keyboard.addListener(showEvent, onShow);
+      const hideSub = Keyboard.addListener(hideEvent, onHide);
+
+      return () => {
+        showSub.remove();
+        hideSub.remove();
+      };
+    }, []);
+
+    // Función de verificación actualizada para quitar foco y cerrar teclado antes de cambiar de paso.
     const handleVerify = async () => {
         if (loading) return; // Permitimos verificar aunque el campo esté vacío
         setLoading(true);
@@ -73,7 +102,16 @@ const ChangePasswordScreen = () => {
         
         const result = await UserService.verifyPassword(currentPassword);
         if (result.success) {
-            setStep(2);
+            // 1) blur del input actual si existe
+            try { currentPasswordRef.current?.blur(); } catch (e) { /* ignore */ }
+            // 2) cerrar teclado
+            Keyboard.dismiss();
+            // 3) esperar un poco para evitar que el teclado se reabra automáticamente
+            setTimeout(() => {
+              setStep(2);
+              // hacer scroll al inicio del paso 2
+              setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
+            }, 140);
         } else {
             setValidationMessages(prev => ({ ...prev, current: result.error || 'Contraseña incorrecta' }));
         }
@@ -103,13 +141,16 @@ const ChangePasswordScreen = () => {
                 title: step === 1 ? 'Verificar Identidad' : 'Establecer Nueva Contraseña',
             }} />
             <KeyboardAvoidingView 
-            behavior={Platform.OS === "ios" ? "padding" : "height"} 
-            style={{flex: 1}}>
-                <ScrollView 
-                style={{ flex: 1 }}
-                  contentContainerStyle={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight + 8 : headerHeight}
+            style={{flex: 1}}
+            >
+                <ScrollView
+                  ref={scrollRef}
+                  contentContainerStyle={[styles.container, { flexGrow: 1, paddingBottom: keyboardHeight + 60 }]}
                   keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}  
+                  keyboardDismissMode="interactive"
+                  showsVerticalScrollIndicator={false}
                 >
                     {step === 1 ? (
                         <>
@@ -117,19 +158,26 @@ const ChangePasswordScreen = () => {
                             <Stepper currentStep={1} />
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Contraseña Actual</Text>
-                                <TextInput 
-                                style={styles.input} 
-                                value={currentPassword} 
-                                placeholder='Mínimo 8 caracteres'
-                                onChangeText={(text) => {
+                                {/* --- Password wrapper para Contraseña Actual --- */}
+                                <View style={styles.passwordWrapper}>
+                                  <TextInput 
+                                    ref={currentPasswordRef}
+                                    style={styles.passwordInput}
+                                    value={currentPassword}
+                                    placeholder='Mínimo 8 caracteres'
+                                    onChangeText={(text) => {
                                         setCurrentPassword(text);
                                         if (validationMessages.current) setValidationMessages(prev => ({...prev, current: ''}));
                                     }}
-                                    secureTextEntry
+                                    secureTextEntry={!isCurrentVisible}
                                     onFocus={() => setValidationMessages(prev => ({...prev, current: 'Debe escribir su contraseña actual'}))}
                                     onBlur={() => setValidationMessages(p => ({...p, current: ''}))}
-                                
-                                />
+                                    returnKeyType="done"
+                                  />
+                                  <TouchableOpacity onPress={() => setIsCurrentVisible(!isCurrentVisible)}>
+                                    <Feather name={isCurrentVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} />
+                                  </TouchableOpacity>
+                                </View>
                                 
                                 {/* Mensaje de validación */}
                                 {validationMessages.current && <Text style={styles.validationText}>{validationMessages.current}</Text>}
@@ -147,30 +195,48 @@ const ChangePasswordScreen = () => {
                             <Stepper currentStep={2} />
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Nueva Contraseña</Text>
-                                <TextInput 
-                                style={styles.input} 
-                                placeholder='Mínimo 8 caracteres' 
-                                value={newPassword} 
-                                onChangeText={setNewPassword} 
-                                secureTextEntry 
-                                onFocus={() => {
+                                {/* --- Password wrapper para Nueva Contraseña --- */}
+                                <View style={styles.passwordWrapper}>
+                                  <TextInput 
+                                    style={styles.passwordInput}
+                                    placeholder='Mínimo 8 caracteres' 
+                                    value={newPassword} 
+                                    onChangeText={setNewPassword} 
+                                    secureTextEntry={!isNewVisible}
+                                    onFocus={() => {
                                         if (newPassword.length < 8) setValidationMessages(prev => ({...prev, new: 'La contraseña debe poseer mínimo 8 caracteres'}));
+                                        // opcional: desplazar un poco para asegurar visibilidad
+                                        setTimeout(() => scrollRef.current?.scrollTo({ y: 120, animated: true }), 100);
                                     }}
-                                />
+                                    returnKeyType="next"
+                                  />
+                                  <TouchableOpacity onPress={() => setIsNewVisible(!isNewVisible)}>
+                                    <Feather name={isNewVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} />
+                                  </TouchableOpacity>
+                                </View>
                                 {validationMessages.new && <Text style={styles.validationText}>{validationMessages.new}</Text>}
                             </View>
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Confirmar Nueva Contraseña</Text>
-                                <TextInput 
-                                style={styles.input} 
-                                placeholder='Confirma tu nueva contraseña' 
-                                value={confirmPassword} 
-                                onChangeText={setConfirmPassword} 
-                                secureTextEntry 
-                                onFocus={() => {
+                                {/* --- Password wrapper para Confirmar Nueva Contraseña --- */}
+                                <View style={styles.passwordWrapper}>
+                                  <TextInput 
+                                    style={styles.passwordInput}
+                                    placeholder='Confirma tu nueva contraseña' 
+                                    value={confirmPassword} 
+                                    onChangeText={setConfirmPassword} 
+                                    secureTextEntry={!isConfirmVisible}
+                                    onFocus={() => {
                                         if (newPassword !== confirmPassword) setValidationMessages(prev => ({...prev, confirm: 'Las contraseñas deben coincidir'}));
+                                        // desplaza hacia abajo para exponer el botón si el teclado está abierto
+                                        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
                                     }}
-                                />
+                                    returnKeyType="done"
+                                  />
+                                  <TouchableOpacity onPress={() => setIsConfirmVisible(!isConfirmVisible)}>
+                                    <Feather name={isConfirmVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} />
+                                  </TouchableOpacity>
+                                </View>
                                 {validationMessages.confirm && <Text style={styles.validationText}>{validationMessages.confirm}</Text>}
                             </View>
                             {/* Mostramos el error del Paso 2 encima del botón */}
@@ -197,6 +263,21 @@ const styles = StyleSheet.create({
   inputGroup: { width: '100%', marginBottom: 16 },
   label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.text, marginBottom: 8 },
   input: { height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Roboto_400Regular' },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+  },
+  passwordInput: { 
+    flex: 1, 
+    fontSize: 16, 
+    color: Colors.text, 
+    fontFamily: 'Roboto_400Regular' },
   button: { width: '100%', backgroundColor: Colors.primary, height: 56, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 16 },
   buttonDisabled: { backgroundColor: '#cccccc' },
   buttonText: { fontFamily: 'Roboto_500Medium', color: Colors.textLight, fontSize: 16 },
