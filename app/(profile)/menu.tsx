@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import Colors from '../../constants/Colors';
+import CustomAlertModal from '../../components/CustomAlertModal'; // Importar el componente de alerta
 
 const MenuItem = ({ onPress, iconName, text, isLast = false }) => (
   <TouchableOpacity style={[styles.menuItem, isLast && { borderBottomWidth: 0 }]} onPress={onPress}>
@@ -19,6 +20,7 @@ const MenuItem = ({ onPress, iconName, text, isLast = false }) => (
 export default function ProfileMenuScreen() {
     const router = useRouter();
     const { user, logout } = useAuth();
+    const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
 
     const getInitials = () => {
         if (user?.Nombre && user?.Apellido) {
@@ -27,8 +29,11 @@ export default function ProfileMenuScreen() {
         return 'US';
     };
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
+        if (router.canGoBack()) {
+            router.dismissAll();
+        }
         router.replace('/(auth)/login');
     };
 
@@ -71,11 +76,26 @@ export default function ProfileMenuScreen() {
                 </View>
 
                 {/* Contenido inferior (Botón de logout) */}
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <TouchableOpacity style={styles.logoutButton} onPress={() => setIsLogoutModalVisible(true)}>
                     <Ionicons name="log-out-outline" size={22} color={Colors.accentPRO} />
                     <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Popup for Logout Confirmation */}
+            {isLogoutModalVisible && <View style={styles.overlay} />}
+            <CustomAlertModal
+                visible={isLogoutModalVisible}
+                title="Cerrar Sesión"
+                message="¿Estás seguro de que deseas cerrar sesión?"
+                confirmText="Sí"
+                cancelText="No"
+                onConfirm={() => {
+                    setIsLogoutModalVisible(false); // Oculta el modal
+                    handleLogout(); // Procede con el logout
+                }}
+                onCancel={() => setIsLogoutModalVisible(false)} // Simplemente oculta el modal
+            />
         </SafeAreaView>
     );
 }
@@ -132,5 +152,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto_500Medium',
     color: Colors.accentPRO,
     fontSize: 16
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 1, // Asegura que esté por encima del contenido pero debajo del modal
   },
 });
