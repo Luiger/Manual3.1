@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import { UserService } from '../../services/user.service';
 import Colors from '../../constants/Colors';
 import { Feather } from '@expo/vector-icons';
+import CustomAlertModal from '../../components/CustomAlertModal';
 
 const Stepper = ({ currentStep }: { currentStep: number }) => (
     <View style={styles.stepperContainer}>
@@ -42,6 +43,8 @@ const ChangePasswordScreen = () => {
     const [isCurrentVisible, setIsCurrentVisible] = useState(false);
     const [isNewVisible, setIsNewVisible] = useState(false);
     const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+    // Modal de alerta
+    const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
 
     // refs
     const currentPasswordRef = useRef<TextInput | null>(null);
@@ -124,9 +127,15 @@ const ChangePasswordScreen = () => {
         setError({ ...error, step2: '' }); // Limpia el error del paso 2
         const result = await UserService.changePassword(newPassword);
         if (result.success) {
-            Alert.alert('Éxito', 'Tu contraseña ha sido actualizada.', [
-                { text: 'OK', onPress: () => router.back() }
-            ]);
+            setModalConfig({
+                visible: true,
+                title: 'Éxito',
+                message: 'Tu contraseña ha sido actualizada.',
+                onConfirm: () => {
+                    setModalConfig(prev => ({...prev, visible: false}));
+                    router.back();
+                }
+            });
         } else {
             // Aquí se mostrará el error "contraseña usada anteriormente"
             setError(prev => ({ ...prev, step2: result.error || 'No se pudo cambiar la contraseña.' }));
@@ -256,6 +265,15 @@ const ChangePasswordScreen = () => {
                     )}
                 </ScrollView>
             </KeyboardAvoidingView>
+            {modalConfig.visible && <View style={styles.overlay} />}
+            <CustomAlertModal
+                visible={modalConfig.visible}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                confirmText="OK"
+                onConfirm={modalConfig.onConfirm}
+                onCancel={modalConfig.onConfirm} // OK es la única acción
+            />
         </SafeAreaView>
     );
 };
@@ -267,6 +285,11 @@ const styles = StyleSheet.create({
     padding: 24, 
     paddingTop: 16,
 },
+overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 1,
+  },
   subtitle: { fontFamily: 'Roboto_400Regular', fontSize: 16, color: Colors.textSecondary, textAlign: 'center', marginBottom: 24 },
   inputGroup: { width: '100%', marginBottom: 16 },
   label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.text, marginBottom: 8 },
