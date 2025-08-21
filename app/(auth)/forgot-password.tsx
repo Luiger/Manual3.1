@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   stepLabelActive: { fontFamily: 'Roboto_700Bold', color: Colors.primary },
   stepperLine: { flex: 1, height: 2, backgroundColor: '#E5E7EB', marginTop: 15 },
   inputContainer: { marginBottom: 20 },
-  label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.textSecondary, marginBottom: 8 },
+  label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.text, marginBottom: 8 },
   input: { height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Roboto_400Regular' },
   passwordWrapper: { flexDirection: 'row', alignItems: 'center', height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16 },
   passwordInput: { flex: 1, fontSize: 16, fontFamily: 'Roboto_400Regular' },

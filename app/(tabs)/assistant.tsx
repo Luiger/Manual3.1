@@ -65,7 +65,7 @@ const AssistantScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
         <View style={styles.header}>
@@ -98,7 +98,6 @@ const AssistantScreen = () => {
   );
 };
 
-// ... (El resto del archivo y los estilos no necesitan cambios)
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.background },
   headerLogo: {

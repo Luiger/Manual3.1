@@ -14,8 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Yup from 'yup';
-import * as SecureStore from 'expo-secure-store';
-import { AuthService } from '../../services/auth.service';
 import Colors from '../../constants/Colors';
 
 // Componente Stepper con estilos actualizados según la guía

@@ -5,9 +5,12 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView} from 'react-native-gesture-handler';
 import { AuthProvider } from '../hooks/useAuth';
+import Colors from '../constants/Colors';
+import * as SystemUI from 'expo-system-ui';
 
 // Se importa 'useFonts' y las fuentes Roboto que usaremos
 import { useFonts, Roboto_400Regular, Roboto_700Bold, Roboto_900Black, Roboto_500Medium, Roboto_300Light } from '@expo-google-fonts/roboto';
+
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,6 +22,11 @@ export default function RootLayout() {
     Roboto_700Bold,    // Peso Bold (700)
     Roboto_900Black,   // Peso Black (900)
   });
+
+  // useEffect para forzar el tema claro
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(Colors.background); // Opcional: asegura que el color de fondo del sistema coincida
+  }, []);
 
   useEffect(() => {
     // Ocultamos la pantalla de carga solo cuando las fuentes estén listas.
