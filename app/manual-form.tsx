@@ -49,6 +49,8 @@ const ManualProFormScreen = () => {
   const [error, setError] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState<boolean | null>(null);
   const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', confirmText: '', cancelText: '', onConfirm: () => {}, onCancel: () => {} });
+  // Estado para controlar el foco del input opcional.
+  const [isOptionalEmailFocused, setIsOptionalEmailFocused] = useState(false);
 
   useEffect(() => {
     const handleUpgrade = () => {
@@ -202,8 +204,27 @@ const ManualProFormScreen = () => {
             <TextInput style={styles.input} value={formData.unidadContratante} onChangeText={(val) => handleInputChange('unidadContratante', val)} />
           </View>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>¿A qué otra dirección de correo electrónico deseas que enviemos el manual? (Opcional)</Text>
-            <TextInput style={styles.input} value={formData.emailAdicional} onChangeText={(val) => handleInputChange('emailAdicional', val)} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} textContentType="none" autoComplete="off" />
+            <Text style={styles.label}>
+                ¿A qué otra dirección de correo electrónico deseas que enviemos el manual?{' '}
+                <Text style={styles.optionalText}>(Opcional)</Text>
+            </Text>
+            <TextInput 
+              style={styles.input} 
+              value={formData.emailAdicional} 
+              onChangeText={(val) => handleInputChange('emailAdicional', val)} 
+              keyboardType="email-address" 
+              autoCapitalize="none" 
+              autoCorrect={false} 
+              textContentType="none" 
+              autoComplete="off"
+              onFocus={() => setIsOptionalEmailFocused(true)}
+              onBlur={() => setIsOptionalEmailFocused(false)}
+            />
+            {isOptionalEmailFocused && (
+                <Text style={styles.helperText}>
+                    Campo de correo electrónico (Opcional)
+                </Text>
+            )}
           </View>
           <View style={styles.warningBox}>
             <Feather name="alert-triangle" size={20} color={Colors.textSecondary} />
@@ -263,7 +284,20 @@ const styles = StyleSheet.create({
   },
   container: { 
     padding: 20,
-    paddingBottom: 40 },
+    paddingBottom: 55 
+  },
+  optionalText: {
+    color: Colors.accentPRO, 
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 14,
+  },
+  helperText: {
+    fontFamily: 'Roboto_400Regular',
+    color: Colors.error,
+    fontSize: 13,
+    marginTop: 6,
+    paddingLeft: 4,
+  },
   header: { marginBottom: 32, alignItems: 'center' },
   title: { fontFamily: 'Roboto_700Bold', fontSize: 22, color: Colors.text, textAlign: 'center' },
   subtitle: { fontFamily: 'Roboto_400Regular', fontSize: 15, color: Colors.textSecondary, textAlign: 'center', marginTop: 12, lineHeight: 22 },
@@ -271,7 +305,7 @@ const styles = StyleSheet.create({
   label: { fontFamily: 'Roboto_500Medium', fontSize: 16, color: Colors.text, marginBottom: 8, lineHeight: 22 },
   input: { height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Roboto_400Regular' },
   legalRef: { fontFamily: 'Roboto_400Regular', fontSize: 12, color: Colors.textSecondary, marginTop: 4, fontStyle: 'italic' },
-  warningBox: { flexDirection: 'row', backgroundColor: Colors.accentExpress, padding: 12, borderRadius: 8, alignItems: 'center', gap: 10, marginTop: 16 },
+  warningBox: { flexDirection: 'row', backgroundColor: Colors.accentExpress, padding: 12, borderRadius: 8, alignItems: 'center', gap: 10, marginTop: 10 },
   warningText: { fontFamily: 'Roboto_400Regular', color: Colors.textSecondary, fontSize: 13, flex: 1, lineHeight: 18 },
   button: { width: '100%', height: 56, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 16 },
   buttonDisabled: { backgroundColor: '#cccccc' },
