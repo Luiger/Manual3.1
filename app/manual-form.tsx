@@ -130,7 +130,7 @@ const ManualProFormScreen = () => {
                 setModalConfig({
                     visible: true,
                     title: 'Éxito',
-                    message: 'Formulario generado correctamente. En 5 minutos lo recibirás en tu correo.',
+                    message: 'Formulario generado correctamente. En unos minutos lo recibirás en tu correo.',
                     confirmText: 'OK',
                     cancelText: '', // No hay botón de cancelar
                     onConfirm: () => {

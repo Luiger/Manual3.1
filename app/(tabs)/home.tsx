@@ -62,7 +62,7 @@ const cardData = [
     buttonText: 'Agendar',
     buttonVariant: 'transparent',
     /*action: () => console.log('Abriendo Asesoría...'),*/
-    action: () => Linking.openURL('https://universitas.legal/contrataciones-publicas/')
+    action: () => Linking.openURL('https://calendly.com/universitas-legal/asesoria')
   },
   {
     id: '6',

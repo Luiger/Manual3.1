@@ -25,6 +25,9 @@ const Colors = {
   // Color de Ícono de Whatsapp
   iconWhatsapp: '#25D366',
   whatsapp: '#075E54', 
+  
+  // Colores de Botones
+  success: '#28a745',
 };
 
 export default Colors;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef  } from 'react';
 import {
-  View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity,
+  View, Text, StyleSheet, ActivityIndicator, TouchableOpacity,
   Platform, KeyboardAvoidingView, ScrollView, TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,6 +58,45 @@ const ForgotPasswordScreen = () => {
     const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
     const [validationMessages, setValidationMessages] = useState({ newPassword: '', confirmPassword: '' });
 
+    // Estados para el temporizador y el botón de reenvío
+    const [timer, setTimer] = useState(30);
+    const [canResend, setCanResend] = useState(false);
+    // Contador de reenvíos
+    // Se usa useRef para evitar que el contador se reinicie en cada renderizado
+    const [resendCount, setResendCount] = useState(0); // Contador de reenvíos
+    const [showResendSuccess, setShowResendSuccess] = useState(false); // Para mostrar "Código reenviado"
+    const successMessageTimer = useRef<NodeJS.Timeout | null>(null); // Ref para el temporizador
+
+    // useEffect para manejar la cuenta regresiva (el temporizador)
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        // El temporizador solo se activa cuando estamos en el paso 2
+        if (step === 2 && !canResend) {
+            interval = setInterval(() => {
+                setTimer((prevTimer) => {
+                    if (prevTimer === 1) {
+                        clearInterval(interval);
+                        setCanResend(true); // Activa el botón de reenvío
+                        return 0;
+                    }
+                    return prevTimer - 1;
+                });
+            }, 1000);
+        }
+        // Limpia el intervalo si el componente se desmonta o el paso cambia
+        return () => clearInterval(interval);
+    }, [step, canResend]); // Se ejecuta cuando cambia el paso o el estado de reenvío
+
+    // useEffect para limpiar el temporizador del mensaje de éxito al desmontar
+    useEffect(() => {
+        // Esto previene errores si el usuario sale de la pantalla mientras el mensaje está visible
+        return () => {
+            if (successMessageTimer.current) {
+                clearTimeout(successMessageTimer.current);
+            }
+        };
+    }, []);
+
     //  Añade este useEffect para manejar el enlace profundo
     useEffect(() => {
         if (otpFromUrl && emailFromUrl) {
@@ -107,9 +146,53 @@ const ForgotPasswordScreen = () => {
         if (!isStepValid || loading) return;
         setLoading(true);
         setError('');
-        await AuthService.forgotPassword(email);
+        const result = await AuthService.forgotPassword(email);
+        if (result.success) {
+            setStep(2);
+            // Reiniciamos el temporizador para la primera vez que llega a esta pantalla
+            setCanResend(false);
+            setTimer(30);
+        } else {
+            setError(result.error || 'Ocurrió un error al enviar el correo.');
+        }
         setLoading(false);
-        setStep(2);
+    };
+
+    // Función para manejar el reenvío del correo
+    const handleResendEmail = async () => {
+        if (!canResend || loading) return;
+
+        // Valida el límite de reenvíos
+        if (resendCount >= 3) {
+            setModalConfig({
+                visible: true,
+                title: 'Límite alcanzado',
+                message: 'Has excedido el número de intentos para reenviar el código. Por favor, intenta de nuevo más tarde.',
+                onConfirm: () => setModalConfig(prev => ({ ...prev, visible: false })),
+            });
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        const result = await AuthService.forgotPassword(email);
+        setLoading(false);
+        
+        if (result.success) {
+            setResendCount(prev => prev + 1); // Incrementa el contador
+            setCanResend(false);
+            setTimer(30);
+
+            // Muestra el mensaje de éxito y lo oculta después de 10 segundos
+            setShowResendSuccess(true);
+            if (successMessageTimer.current) clearTimeout(successMessageTimer.current);
+            successMessageTimer.current = setTimeout(() => {
+                setShowResendSuccess(false);
+            }, 10000);
+
+        } else {
+            setError('No se pudo reenviar el código. Inténtalo de nuevo.');
+        }
     };
     
     // --- Maneja la verificación del OTP ---
@@ -193,6 +276,21 @@ const ForgotPasswordScreen = () => {
                             {/* Mensaje de error en rojo */}
                             {error && <Text style={styles.errorText}>{error}</Text>}
                         </View>
+                        {/* Botón de reenvío y el temporizador */}
+                        <View style={styles.resendContainer}>
+                            <TouchableOpacity onPress={handleResendEmail} disabled={!canResend}>
+                                <Text style={[styles.resendText, !canResend && styles.resendTextDisabled]}>
+                                    Volver a enviar código
+                                </Text>
+                            </TouchableOpacity>
+                            {!canResend && <Text style={styles.timerText}>(0:{timer.toString().padStart(2, '0')})</Text>}
+                        </View>
+
+                        {/* Mensaje de éxito condicionalmente */}
+                        {showResendSuccess && (
+                            <Text style={styles.successText}>Código reenviado</Text>
+                        )}
+
                         <TouchableOpacity style={[styles.button, !isStepValid && styles.buttonDisabled]} onPress={handleVerifyOtp} disabled={!isStepValid || loading}>
                             {loading ? <ActivityIndicator color={Colors.textLight} /> : <Text style={styles.buttonText}>Verificar</Text>}
                         </TouchableOpacity>
@@ -316,10 +414,37 @@ const styles = StyleSheet.create({
   input: { height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Roboto_400Regular' },
   passwordWrapper: { flexDirection: 'row', alignItems: 'center', height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16 },
   passwordInput: { flex: 1, fontSize: 16, fontFamily: 'Roboto_400Regular' },
-  button: { width: '100%', height: 56, backgroundColor: Colors.primary, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
+  button: { width: '100%', height: 56, backgroundColor: Colors.primary, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 24 },
   buttonDisabled: { backgroundColor: '#cccccc' },
   buttonText: { fontFamily: 'Roboto_500Medium', color: Colors.textLight, fontSize: 16 },
   errorText: { fontFamily: 'Roboto_400Regular', color: Colors.error, textAlign: 'center', marginTop: 20, fontSize: 14 },
+  resendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  resendText: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 14,
+    color: Colors.link,
+  },
+  resendTextDisabled: {
+    color: Colors.textSecondary,
+  },
+  timerText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginLeft: 8,
+  },
+  successText: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 14,
+    color: Colors.success,
+    textAlign: 'center',
+    marginTop: 12,
+  },
 });
 
 export default ForgotPasswordScreen;

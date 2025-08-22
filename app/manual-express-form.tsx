@@ -103,7 +103,7 @@ const ManualExpressFormScreen = () => {
         setModalConfig({
             visible: true,
             title: 'Éxito',
-            message: 'Formulario enviado correctamente.',
+            message: 'Formulario generado correctamente. En unos minutos lo recibirás en tu correo.',
             onConfirm: () => {
                 setModalConfig(prev => ({ ...prev, visible: false }));
                 router.back();
@@ -118,15 +118,6 @@ const ManualExpressFormScreen = () => {
       setIsSubmitting(false);
     }
   };
-
-  /*if (isVerifying) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Verificando estado...</Text>
-      </View>
-    );
-  }*/
 
    return (
     <SafeAreaView style={{flex: 1,
