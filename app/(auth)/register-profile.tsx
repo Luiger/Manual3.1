@@ -40,6 +40,7 @@ const RegisterProfileScreen = () => {
   const [prefixValue, setPrefixValue] = useState('0414'); // El valor inicial del dropdown
   const [items, setItems] = useState([
     { label: '0412', value: '0412' },
+    { label: '0422', value: '0422' },
     { label: '0414', value: '0414' },
     { label: '0416', value: '0416' },
     { label: '0424', value: '0424' },
@@ -83,6 +84,11 @@ const RegisterProfileScreen = () => {
                 message: 'Hemos enviado un enlace a tu dirección para que confirmes tu cuenta. Por favor, revisa tu bandeja de entrada o spam.',
                 onConfirm: () => {
                     setModalConfig({ ...modalConfig, visible: false });
+                    // Limpiamos la pila de navegación
+                    if (router.canGoBack()) {
+                        router.dismissAll();
+                    }
+                    // Redirigimos al usuario a la página de inicio de sesión
                     router.replace('/(auth)/login');
                 },
             });
@@ -161,7 +167,7 @@ const RegisterProfileScreen = () => {
               onChangeText={(val) => handleInputChange('Institucion', val)} /></View>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Cargo</Text>
-              <TextInput 
+              <TextInput
               style={styles.input} 
               placeholder="Ingresa tu cargo" 
               value={profile.Cargo} 
@@ -180,7 +186,7 @@ const RegisterProfileScreen = () => {
                 <Text style={styles.linkText}>Política de Privacidad</Text>
               </TouchableOpacity>
               <Text style={styles.legalText}>.</Text>
-            </View>            
+            </View>
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             <TouchableOpacity style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]} onPress={handleCompleteProfile} disabled={!isFormValid || loading}>

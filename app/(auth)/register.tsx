@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 10,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   header: { marginBottom: 10},
   title: {
