@@ -56,6 +56,7 @@ const ForgotPasswordScreen = () => {
     const [error, setError] = useState('');
     const [isStepValid, setIsStepValid] = useState(false);
     const [modalConfig, setModalConfig] = useState({ visible: false, title: '', message: '', onConfirm: () => {} });
+    const [validationMessages, setValidationMessages] = useState({ newPassword: '', confirmPassword: '' });
 
     //  Añade este useEffect para manejar el enlace profundo
     useEffect(() => {
@@ -82,7 +83,22 @@ const ForgotPasswordScreen = () => {
         let data;
         if (step === 1) { schema = step1Schema; data = { email }; }
         else if (step === 2) { schema = step2Schema; data = { otp }; }
-        else { schema = step3Schema; data = { password, confirmPassword }; }
+        else { 
+            schema = step3Schema; 
+            data = { password, confirmPassword }; 
+        // Lógica para mensajes de texto rojo
+            if (password.length > 0 && password.length < 8) {
+                setValidationMessages(prev => ({ ...prev, newPassword: 'La contraseña debe poseer mínimo 8 caracteres' }));
+            } else {
+                setValidationMessages(prev => ({ ...prev, newPassword: '' }));
+            }
+
+            if (confirmPassword.length > 0 && password !== confirmPassword) {
+                setValidationMessages(prev => ({ ...prev, confirmPassword: 'Las contraseñas deben coincidir' }));
+            } else {
+                setValidationMessages(prev => ({ ...prev, confirmPassword: '' }));
+            }
+        }
         
         schema.isValid(data).then(setIsStepValid);
     }, [step, email, otp, password, confirmPassword]);
@@ -188,8 +204,42 @@ const ForgotPasswordScreen = () => {
                         <Text style={styles.title}>Establecer nueva contraseña</Text>
                         <Text style={styles.subtitle}>Tu nueva contraseña debe ser segura.</Text>
                         <Stepper currentStep={3} />
-                        <View style={styles.inputContainer}><Text style={styles.label}>Nueva Contraseña</Text><View style={styles.passwordWrapper}><TextInput style={styles.passwordInput} placeholder="Mínimo 8 caracteres" value={password} onChangeText={setPassword} secureTextEntry={!isPasswordVisible} /><TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}><Feather name={isPasswordVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} /></TouchableOpacity></View></View>
-                        <View style={styles.inputContainer}><Text style={styles.label}>Confirmar Nueva Contraseña</Text><View style={styles.passwordWrapper}><TextInput style={styles.passwordInput} placeholder="Confirma tu nueva contraseña" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!isConfirmPasswordVisible} /><TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}><Feather name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} /></TouchableOpacity></View></View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Nueva Contraseña</Text>
+                            <View style={styles.passwordWrapper}>
+                                <TextInput 
+                                    style={styles.passwordInput} 
+                                    placeholder="Mínimo 8 caracteres" 
+                                    value={password} 
+                                    onChangeText={setPassword} 
+                                    secureTextEntry={!isPasswordVisible}
+                                    onFocus={() => { if (password.length < 8) setValidationMessages(p => ({...p, newPassword: 'La contraseña debe poseer mínimo 8 caracteres'})) }}
+                                    onBlur={() => setValidationMessages(p => ({...p, newPassword: ''}))} 
+                                />
+                                <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                                    <Feather name={isPasswordVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} />
+                                </TouchableOpacity>
+                            </View>
+                            {validationMessages.newPassword && <Text style={styles.validationText}>{validationMessages.newPassword}</Text>}
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Confirmar Nueva Contraseña</Text>
+                            <View style={styles.passwordWrapper}>
+                                <TextInput 
+                                    style={styles.passwordInput} 
+                                    placeholder="Confirma tu nueva contraseña" 
+                                    value={confirmPassword} 
+                                    onChangeText={setConfirmPassword} 
+                                    secureTextEntry={!isConfirmPasswordVisible}
+                                    onFocus={() => { if (password !== confirmPassword) setValidationMessages(p => ({...p, confirmPassword: 'Las contraseñas deben coincidir'})) }} 
+                                />
+                                    
+                                <TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}>
+                                    <Feather name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} size={22} color={Colors.textSecondary} />
+                                </TouchableOpacity>
+                            </View>
+                            {validationMessages.confirmPassword && <Text style={styles.validationText}>{validationMessages.confirmPassword}</Text>}
+                        </View>
                         <TouchableOpacity style={[styles.button, !isStepValid && styles.buttonDisabled]} onPress={handleResetPassword} disabled={!isStepValid || loading}>
                             {loading ? <ActivityIndicator color={Colors.textLight} /> : <Text style={styles.buttonText}>Actualizar contraseña</Text>}
                         </TouchableOpacity>
@@ -202,9 +252,14 @@ const ForgotPasswordScreen = () => {
     return (
         <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoiding}>
-                <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-                    {renderStepContent()}
-                    {/*error ? <Text style={styles.errorText}>{error}</Text> : null*/}
+                <ScrollView 
+                    contentContainerStyle={styles.scrollContainer} 
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.contentWrapper}>
+                        {/* El renderizado de cada paso ahora está envuelto aquí */}
+                        {renderStepContent()}
+                    </View>
                 </ScrollView>
             </KeyboardAvoidingView>
 
@@ -228,8 +283,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     zIndex: 1,
   },
+  contentWrapper: {
+    flex: 1,
+  },
+  validationText: {
+    fontFamily: 'Roboto_400Regular',
+    color: Colors.error,
+    fontSize: 13,
+    marginTop: 6,
+    paddingLeft: 4,
+  },
   keyboardAvoiding: { flex: 1 },
-  scrollContainer: { flexGrow: 1, padding: 24, paddingTop: 16 },
+  scrollContainer: { 
+    flexGrow: 1, 
+    padding: 24, 
+    paddingTop: 16,
+    paddingBottom: 100,
+  },
   title: { fontFamily: 'Roboto_700Bold', fontSize: 24, textAlign: 'center', color: Colors.text, marginBottom: 8 },
   subtitle: { fontFamily: 'Roboto_400Regular', fontSize: 16, color: Colors.textSecondary, textAlign: 'center', marginBottom: 24 },
   stepperContainer: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', marginBottom: 32, width: '100%' },
