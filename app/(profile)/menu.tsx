@@ -39,32 +39,30 @@ export default function ProfileMenuScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* 1. El Header ahora es un componente estático en el flujo normal del layout */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={28} color={Colors.text} />
                 </TouchableOpacity>
             </View>
 
-            {/* 2. Un nuevo contenedor principal que usa flexbox para posicionar el footer */}
             <View style={styles.container}>
                 {/* Contenido superior (Avatar, nombre y opciones) */}
                 <View>
                     <View style={styles.userInfoSection}>
                         <View style={styles.avatar}><Text style={styles.avatarText}>{getInitials()}</Text></View>
                         <Text style={styles.userName}>{user ? `${user.Nombre} ${user.Apellido}` : 'Usuario'}</Text>
-                        <Text style={styles.userAccountType}>Cuenta Personal</Text>
+                        <Text style={styles.userAccountType}>Cuenta personal</Text>
                     </View>
                     <View style={styles.menuSection}>
                         <MenuItem 
                             onPress={() => router.push('/(profile)/edit')} 
                             iconName="edit-3" 
-                            text="Editar Perfil" 
+                            text="Editar perfil" 
                         />
                         <MenuItem 
                             onPress={() => router.push('/(profile)/change-password')} 
                             iconName="key" 
-                            text="Cambiar Contraseña"
+                            text="Cambiar contraseña"
                         />
                         <MenuItem 
                             onPress={() => router.push('/(profile)/about')} 
@@ -78,7 +76,7 @@ export default function ProfileMenuScreen() {
                 {/* Contenido inferior (Botón de logout) */}
                 <TouchableOpacity style={styles.logoutButton} onPress={() => setIsLogoutModalVisible(true)}>
                     <Ionicons name="log-out-outline" size={22} color={Colors.accentPRO} />
-                    <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+                    <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>
 
@@ -105,7 +103,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  // 3. El Header ya no tiene 'position: absolute'
   header: {
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -114,7 +111,7 @@ const styles = StyleSheet.create({
     padding: 8,
     alignSelf: 'flex-start',
   },
-  // 4. El contenedor principal ahora gestiona el layout vertical
+  // El contenedor principal ahora gestiona el layout vertical
   container: {
     flex: 1,
     paddingHorizontal: 24,

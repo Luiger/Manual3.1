@@ -32,7 +32,7 @@ const repositoryData = [
     id: '4',
     title: 'Biblioteca de Ordenanzas municipales',
     imageUrl: 'https://drive.google.com/uc?export=view&id=1NL6qB8CJzzWMJhc3NeEMQWr7O8-iA5gI',
-    linkUrl: 'https://universitas.legal/ordenanzas-municipales-biblioteca/',
+    linkUrl: 'https://universitas.legal/biblioteca-de-ordenanzas-municipales/',
   },
 ];
 
