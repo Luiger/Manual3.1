@@ -70,7 +70,7 @@ const AssistantScreen = () => {
       >
         <View style={styles.header}>
         <Image source={require('../../assets/images/Julio AI.jpeg')} style={styles.headerLogo} resizeMode='contain' />
-        <Text style={styles.headerTitle}>Julio AI</Text>
+        <Text style={styles.headerTitle}>AsesorIA Contrataciones</Text>
         </View>
 
         <FlatList
