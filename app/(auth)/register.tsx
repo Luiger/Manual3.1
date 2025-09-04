@@ -15,6 +15,7 @@ import { useRouter, Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Yup from 'yup';
 import Colors from '../../constants/Colors';
+import * as Linking from 'expo-linking';
 
 // Componente Stepper con estilos actualizados según la guía
 const Stepper = ({ currentStep }: { currentStep: number }) => (
@@ -107,6 +108,11 @@ const RegisterCredentialsScreen = () => {
         password: formData.password 
       }
     });
+  };
+
+  // Función para abrir URLs externas.
+  const handleOpenURL = (url: string) => {
+    Linking.openURL(url).catch(err => console.error("No se pudo abrir la página", err));
   };
 
   return (
@@ -202,11 +208,11 @@ const RegisterCredentialsScreen = () => {
 
             <View style={styles.legalContainer}>
               <Text style={styles.legalText}>Al crear una cuenta, aceptas los </Text>
-              <TouchableOpacity onPress={() => router.push('/terms')}>
+              <TouchableOpacity onPress={() => handleOpenURL('https://universitas.legal/manuales-de-contrataciones-publicas-terminos-y-condiciones/')}>
                 <Text style={styles.linkText}>Términos y Condiciones</Text>
               </TouchableOpacity>
               <Text style={styles.legalText}> y la </Text>
-              <TouchableOpacity onPress={() => router.push('/privacy')}>
+              <TouchableOpacity onPress={() => handleOpenURL('https://universitas.legal/manuales-de-contrataciones-publicas-politicas-de-privacidad/')}>
                 <Text style={styles.linkText}>Política de Privacidad</Text>
               </TouchableOpacity>
               <Text style={styles.legalText}>.</Text>

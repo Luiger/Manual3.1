@@ -3,24 +3,34 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 import { useAuth } from '../../hooks/useAuth';
 import Colors from '../../constants/Colors';
-import CustomAlertModal from '../../components/CustomAlertModal'; // Importar el componente de alerta
+import CustomAlertModal from '../../components/CustomAlertModal';
 
-const MenuItem = ({ onPress, iconName, text, isLast = false }) => (
-  <TouchableOpacity style={[styles.menuItem, isLast && { borderBottomWidth: 0 }]} onPress={onPress}>
-    <View style={styles.menuItemContent}>
-      <Feather name={iconName} size={22} color={Colors.textSecondary} />
-      <Text style={styles.menuItemText}>{text}</Text>
-    </View>
-    <Ionicons name="chevron-forward" size={22} color={Colors.textSecondary} />
-  </TouchableOpacity>
-);
+const MenuItem = ({ onPress, iconName, text, isLast = false, variant = 'default' }) => {
+  const isExternalLink = variant === 'external';
+  const itemColor = isExternalLink ? Colors.accentPRO : Colors.text;
+  const leftIconColor = isExternalLink ? Colors.accentPRO : Colors.textSecondary;
+  const rightIconName = isExternalLink ? 'open-outline' : 'chevron-forward';
+
+  return (
+    <TouchableOpacity style={[styles.menuItem, isLast && { borderBottomWidth: 0 }]} onPress={onPress}>
+      <View style={styles.menuItemContent}>
+        <Feather name={iconName} size={22} color={leftIconColor} />
+        <Text style={[styles.menuItemText, { color: itemColor }]}>{text}</Text>
+      </View>
+      <Ionicons name={rightIconName} size={22} color={itemColor} />
+    </TouchableOpacity>
+  );
+};
 
 export default function ProfileMenuScreen() {
     const router = useRouter();
     const { user, logout } = useAuth();
-    const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
+    const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+    // <-- 1. AÑADIMOS UN NUEVO ESTADO PARA EL MODAL DE ELIMINACIÓN
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const getInitials = () => {
         if (user?.Nombre && user?.Apellido) {
@@ -37,6 +47,13 @@ export default function ProfileMenuScreen() {
         router.replace('/(auth)/login');
     };
 
+    const handleDeleteAccount = () => {
+        const url = 'https://universitas.legal/eliminar-cuenta-app-mcp/';
+        Linking.openURL(url).catch(err => 
+            console.error("No se pudo abrir la página", err)
+        );
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
@@ -46,7 +63,6 @@ export default function ProfileMenuScreen() {
             </View>
 
             <View style={styles.container}>
-                {/* Contenido superior (Avatar, nombre y opciones) */}
                 <View>
                     <View style={styles.userInfoSection}>
                         <View style={styles.avatar}><Text style={styles.avatarText}>{getInitials()}</Text></View>
@@ -68,20 +84,25 @@ export default function ProfileMenuScreen() {
                             onPress={() => router.push('/(profile)/about')} 
                             iconName="info" 
                             text="Acerca de la App"
-                            //isLast={true}
+                        />
+                        <MenuItem
+                            onPress={() => setIsDeleteModalVisible(true)} 
+                            iconName="trash-2"
+                            text="Eliminar cuenta"
+                            variant="external"
                         />
                     </View>
                 </View>
 
-                {/* Contenido inferior (Botón de logout) */}
                 <TouchableOpacity style={styles.logoutButton} onPress={() => setIsLogoutModalVisible(true)}>
                     <Ionicons name="log-out-outline" size={22} color={Colors.accentPRO} />
                     <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Popup for Logout Confirmation */}
-            {isLogoutModalVisible && <View style={styles.overlay} />}
+            {(isLogoutModalVisible || isDeleteModalVisible) && <View style={styles.overlay} />}
+
+            {/* Modal para Cerrar Sesión */}
             <CustomAlertModal
                 visible={isLogoutModalVisible}
                 title="Cerrar Sesión"
@@ -89,10 +110,24 @@ export default function ProfileMenuScreen() {
                 confirmText="Sí"
                 cancelText="No"
                 onConfirm={() => {
-                    setIsLogoutModalVisible(false); // Oculta el modal
-                    handleLogout(); // Procede con el logout
+                    setIsLogoutModalVisible(false);
+                    handleLogout();
                 }}
-                onCancel={() => setIsLogoutModalVisible(false)} // Simplemente oculta el modal
+                onCancel={() => setIsLogoutModalVisible(false)}
+            />
+
+            {/* Modal para Eliminar Cuenta*/}
+            <CustomAlertModal
+                visible={isDeleteModalVisible}
+                title="Eliminar Cuenta"
+                message="¿Estás seguro de que deseas eliminar tu cuenta?"
+                confirmText="Sí"
+                cancelText="No"
+                onConfirm={() => {
+                    setIsDeleteModalVisible(false);
+                    handleDeleteAccount();
+                }}
+                onCancel={() => setIsDeleteModalVisible(false)}
             />
         </SafeAreaView>
     );
@@ -111,16 +146,15 @@ const styles = StyleSheet.create({
     padding: 8,
     alignSelf: 'flex-start',
   },
-  // El contenedor principal ahora gestiona el layout vertical
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingBottom: 16, // Pequeño padding para que no quede pegado al borde
+    paddingBottom: 16,
     justifyContent: 'space-between',
   },
   userInfoSection: {
     alignItems: 'center',
-    paddingTop: 16, // Espacio reducido
+    paddingTop: 16,
   },
   avatar: {
     width: 80, height: 80, borderRadius: 40,
@@ -140,7 +174,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   menuItemContent: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  menuItemText: { fontFamily: 'Roboto_400Regular', fontSize: 16, color: Colors.text },
+  menuItemText: { fontFamily: 'Roboto_400Regular', fontSize: 16 },
   logoutButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 16, gap: 8, alignSelf: 'center'
@@ -153,6 +187,6 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    zIndex: 1, // Asegura que esté por encima del contenido pero debajo del modal
+    zIndex: 1,
   },
 });
