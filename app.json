@@ -4,7 +4,7 @@
     "slug": "manual3-1",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/UniIcon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -19,7 +19,7 @@
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -36,7 +36,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "e4f9c6db-0e5a-4eb7-99b5-21f59e98ba21"
+        "projectId": "19afc072-641f-4b74-983a-f0edd4929d02"
       }
     },
     "owner": "luiger"
