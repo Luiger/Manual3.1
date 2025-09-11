@@ -23,7 +23,9 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.luiger.Manual32"
+      "package": "com.Universitas.Manual",
+      "useProguard": true,
+      "enableProguardInDevelopment": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +38,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "19afc072-641f-4b74-983a-f0edd4929d02"
+        "projectId": "1ec48744-21ec-4032-9aba-2d9b8bac94fc"
       }
     },
     "owner": "luiger"

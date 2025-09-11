@@ -413,7 +413,12 @@ const styles = StyleSheet.create({
   label: { fontFamily: 'Roboto_400Regular', fontSize: 14, color: Colors.text, marginBottom: 8 },
   input: { height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Roboto_400Regular' },
   passwordWrapper: { flexDirection: 'row', alignItems: 'center', height: 56, backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 16 },
-  passwordInput: { flex: 1, fontSize: 16, fontFamily: 'Roboto_400Regular' },
+  passwordInput: { 
+    flex: 1, 
+    fontSize: 16, 
+    fontFamily: 'Roboto_400Regular', 
+    color: Colors.text, 
+},
   button: { width: '100%', height: 56, backgroundColor: Colors.primary, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 24 },
   buttonDisabled: { backgroundColor: '#cccccc' },
   buttonText: { fontFamily: 'Roboto_500Medium', color: Colors.textLight, fontSize: 16 },
