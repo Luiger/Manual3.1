@@ -23,9 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.Universitas.Manual",
-      "useProguard": true,
-      "enableProguardInDevelopment": false
+      "package": "com.Universitas.Manual"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,7 +31,17 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {},
